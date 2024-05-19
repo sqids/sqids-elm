@@ -1,19 +1,15 @@
 module Internal.Shuffle exposing (..)
 
-import Shuffle
+import Defaults
 import Expect
+import Shuffle
 import Test exposing (Test)
 
 
-defaultOptions : { alphabet : String }
-defaultOptions =
-    { alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    }
-
-
+shuffleTest : Test
 shuffleTest =
     [ test "default shuffle, checking for randomness"
-        defaultOptions.alphabet
+        Defaults.alphabet
         "fwjBhEY2uczNPDiloxmvISCrytaJO4d71T0W3qnMZbXVHg6eR8sAQ5KkpLUGF9"
     , test "numbers in the front, another check for randomness"
         "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
