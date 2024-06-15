@@ -1,15 +1,18 @@
 module Internal.Shuffle exposing (..)
 
-import Defaults
+{-| Same tests as in <https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/tests/internal/shuffle.test.ts>
+-}
+
 import Expect
 import Shuffle
+import Sqids.Context
 import Test exposing (Test)
 
 
 shuffleTest : Test
 shuffleTest =
     [ test "default shuffle, checking for randomness"
-        Defaults.alphabet
+        Sqids.Context.defaultAlphabet
         "fwjBhEY2uczNPDiloxmvISCrytaJO4d71T0W3qnMZbXVHg6eR8sAQ5KkpLUGF9"
     , test "numbers in the front, another check for randomness"
         "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

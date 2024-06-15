@@ -7,6 +7,7 @@ import Expect
 import Html.Attributes exposing (value)
 import List.Extra
 import Shuffle
+import Sqids.Context
 import Test exposing (Test, describe)
 
 
@@ -30,6 +31,23 @@ errToString error =
 
         MaxRegenerateAttempts ->
             "Reached max attempts to re-generate the ID"
+
+
+decode : String -> List Int
+decode =
+    decodeWith Defaults.context
+
+
+decodeWith : Context -> String -> List Int
+decodeWith context string =
+    if string == "" then
+        []
+
+    else if Sqids.Context.allInAlphabet context string then
+        Debug.todo "implement decodeWith"
+
+    else
+        []
 
 
 encodeList : List Int -> Result Errors String
@@ -76,8 +94,9 @@ maxSafeInt =
 encodeNumbers : Context -> Int -> List Int -> Result Errors String
 encodeNumbers context increment numbers =
     let
+        initialAlphabet : Array Char
         initialAlphabet =
-            context.alphabet
+            Sqids.Context.getAlphabet context
 
         minLength =
             0
