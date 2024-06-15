@@ -3,16 +3,16 @@ module Encoding exposing (..)
 {-| Same tests as in <https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/tests/encoding.test.ts>
 -}
 
-import Draft as Sqids exposing (testFn)
 import Expect
-import Sqids.Context exposing (Context)
+import Helpers exposing (testFn)
+import Sqids
 import Test exposing (Test, describe)
 
 
 simple : Test
 simple =
     describe "simple encoding test"
-        [ roundTripTest [ 1, 2, 3 ] "86Rf07" ]
+        [ Helpers.roundTripTest [ 1, 2, 3 ] "86Rf07" ]
 
 
 {-| TODO
@@ -32,7 +32,7 @@ differentInputs =
 
 incrementalNumbers : Test
 incrementalNumbers =
-    roundTripTests "incremental numbers"
+    Helpers.roundTripTests "incremental numbers"
         [ ( "bM", [ 0 ] )
         , ( "Uk", [ 1 ] )
         , ( "gb", [ 2 ] )
@@ -48,7 +48,7 @@ incrementalNumbers =
 
 incrementalNumbersSameIndex0 : Test
 incrementalNumbersSameIndex0 =
-    roundTripTests "incremental numbers, same index 0"
+    Helpers.roundTripTests "incremental numbers, same index 0"
         [ ( "SvIz", [ 0, 0 ] )
         , ( "n3qa", [ 0, 1 ] )
         , ( "tryF", [ 0, 2 ] )
@@ -64,7 +64,7 @@ incrementalNumbersSameIndex0 =
 
 incrementalNumbersSameIndex1 : Test
 incrementalNumbersSameIndex1 =
-    roundTripTests "incremental numbers, same index 1"
+    Helpers.roundTripTests "incremental numbers, same index 1"
         [ ( "SvIz", [ 0, 0 ] )
         , ( "nWqP", [ 1, 0 ] )
         , ( "tSyw", [ 2, 0 ] )
@@ -127,30 +127,4 @@ encodeOutOfRange =
         , testFn Sqids.encodeList
             [ Sqids.maxSafeInt + 1 ]
             (Err (Sqids.TooHighInteger (Sqids.maxSafeInt + 1)))
-        ]
-
-
-
--- HELPERS
-
-
-roundTripTests : String -> List ( String, List Int ) -> Test
-roundTripTests title tests =
-    describe title <|
-        List.map
-            (\( id, numbers ) -> roundTripTest numbers id)
-            tests
-
-
-roundTripTest : List Int -> String -> Test
-roundTripTest =
-    roundTripTestWith Sqids.Context.default
-
-
-roundTripTestWith : Context -> List Int -> String -> Test
-roundTripTestWith context numbers id =
-    describe (Debug.toString numbers ++ " <-> " ++ id)
-        [ testFn (Sqids.encodeListWith context) numbers (Ok id)
-        , testFn (Sqids.decodeWith context) id numbers
-            |> Test.skip
         ]
