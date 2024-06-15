@@ -5,6 +5,7 @@ module Encoding exposing (..)
 
 import Draft as Sqids exposing (testFn)
 import Expect
+import Sqids.Context exposing (Context)
 import Test exposing (Test, describe)
 
 
@@ -142,9 +143,14 @@ roundTripTests title tests =
 
 
 roundTripTest : List Int -> String -> Test
-roundTripTest numbers id =
+roundTripTest =
+    roundTripTestWith Sqids.Context.default
+
+
+roundTripTestWith : Context -> List Int -> String -> Test
+roundTripTestWith context numbers id =
     describe (Debug.toString numbers ++ " <-> " ++ id)
-        [ testFn Sqids.encodeList numbers (Ok id)
-        , testFn Sqids.decode id numbers
+        [ testFn (Sqids.encodeListWith context) numbers (Ok id)
+        , testFn (Sqids.decodeWith context) id numbers
             |> Test.skip
         ]

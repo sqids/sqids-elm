@@ -6,6 +6,7 @@ import Defaults exposing (Context)
 import Expect
 import Html.Attributes exposing (value)
 import List.Extra
+import Result.Extra
 import Shuffle
 import Sqids.Context
 import Test exposing (Test, describe)
@@ -316,12 +317,22 @@ abc : Test
 abc =
     let
         encodes =
-            testFn <| encodeListWith Defaults.abc
+            testFn <| encodeListWith abcContext
     in
     describe "Encode with short alphabet 'abc'"
         [ encodes [ 0 ] (Ok "ca")
         , encodes [ 0, 1, 2 ] (Ok "abcabac")
         ]
+
+
+{-| TODO remove this example context after encode and decode work
+-}
+abcContext : Context
+abcContext =
+    Sqids.Context.new
+        |> Sqids.Context.withAlphabet "abc"
+        |> Sqids.Context.build
+        |> Result.Extra.extract (Debug.todo << Debug.toString)
 
 
 defaultAlphabet : Test
