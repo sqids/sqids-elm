@@ -4,6 +4,7 @@ module Alphabet exposing (..)
 
 -}
 
+import Expect
 import Helpers
 import Result.Extra
 import Sqids.Context exposing (Context)
@@ -70,21 +71,14 @@ repeatingAlphabet =
     Test.todo "Reject repeating characters in alphabet"
 
 
-{-|
-
-    test('too short of an alphabet', async () => {
-        await expect(
-            async () =>
-                new Sqids({
-                    alphabet: 'ab'
-                })
-        ).rejects.toThrow('Alphabet length must be at least 3');
-    });
-
--}
 tooShort : Test
 tooShort =
-    Test.todo "Reject too short alphabet"
+    Test.test "too short of an alphabet" <|
+        \() ->
+            Sqids.Context.new
+                |> Sqids.Context.withAlphabet "ab"
+                |> Sqids.Context.build
+                |> Expect.equal (Err Sqids.Context.AlphabetTooShort)
 
 
 

@@ -1,9 +1,11 @@
 module Sqids.Context exposing
     ( Context
+    , Error(..)
     , allInAlphabet
     , build
     , default
     , defaultAlphabet
+    , errorToString
     , from
     , getAlphabet
     , new
@@ -107,20 +109,31 @@ withBlockList blockList builder =
     { builder | blockList = blockList }
 
 
-type alias Error =
-    ()
+type Error
+    = AlphabetTooShort
+
+
+errorToString : Error -> String
+errorToString err =
+    case err of
+        AlphabetTooShort ->
+            "Alphabet length must be at least 3"
 
 
 build : ContextBuilder -> Result Error Context
 build { alphabet, minLength, blockList } =
-    case alphabet |> String.toList |> Array.fromList |> Shuffle.charArray of
-        Err _ ->
-            Debug.todo "Invalid algorithm"
+    if String.length alphabet < 3 then
+        Err AlphabetTooShort
 
-        Ok shuffled ->
-            { alphabet = shuffled
-            , minLength = minLength
-            , blockList = blockList -- TODO
-            }
-                |> Context
-                |> Ok
+    else
+        case alphabet |> String.toList |> Array.fromList |> Shuffle.charArray of
+            Err _ ->
+                Debug.todo "Invalid algorithm"
+
+            Ok shuffled ->
+                { alphabet = shuffled
+                , minLength = minLength
+                , blockList = blockList -- TODO
+                }
+                    |> Context
+                    |> Ok
