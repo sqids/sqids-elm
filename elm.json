@@ -21,7 +21,8 @@
     },
     "test-dependencies": {
         "direct": {
-            "elm-explorations/test": "2.1.1"
+            "elm-explorations/test": "2.1.1",
+            "zwilias/elm-utf-tools": "2.0.1"
         },
         "indirect": {
             "elm/bytes": "1.0.8",

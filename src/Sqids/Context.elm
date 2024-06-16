@@ -111,6 +111,7 @@ withBlockList blockList builder =
 
 type Error
     = AlphabetTooShort
+    | AlphabetContainsMultibyteChar Char
 
 
 errorToString : Error -> String
@@ -119,6 +120,9 @@ errorToString err =
         AlphabetTooShort ->
             "Alphabet length must be at least 3"
 
+        AlphabetContainsMultibyteChar char ->
+            "Alphabet cannot contain multibyte character '" ++ String.fromChar char ++ "'"
+
 
 build : ContextBuilder -> Result Error Context
 build { alphabet, minLength, blockList } =
@@ -126,14 +130,37 @@ build { alphabet, minLength, blockList } =
         Err AlphabetTooShort
 
     else
-        case alphabet |> String.toList |> Array.fromList |> Shuffle.charArray of
-            Err _ ->
-                Debug.todo "Invalid algorithm"
+        let
+            chars =
+                alphabet |> String.toList
+        in
+        case containsInvalidChar chars of
+            Just char ->
+                AlphabetContainsMultibyteChar char |> Err
 
-            Ok shuffled ->
-                { alphabet = shuffled
-                , minLength = minLength
-                , blockList = blockList -- TODO
-                }
-                    |> Context
-                    |> Ok
+            Nothing ->
+                case chars |> Array.fromList |> Shuffle.charArray of
+                    Err _ ->
+                        Debug.todo "Invalid algorithm"
+
+                    Ok shuffled ->
+                        { alphabet = shuffled
+                        , minLength = minLength
+                        , blockList = blockList -- TODO
+                        }
+                            |> Context
+                            |> Ok
+
+
+containsInvalidChar : List Char -> Maybe Char
+containsInvalidChar chars =
+    case chars of
+        [] ->
+            Nothing
+
+        first :: rest ->
+            if Debug.log "code" (Char.toCode (Debug.log "char" first)) < 0x80 then
+                containsInvalidChar rest
+
+            else
+                Just first

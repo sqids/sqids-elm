@@ -37,21 +37,14 @@ longAlphabet =
         |> Test.skip
 
 
-{-|
-
-    test('multibyte characters', async () => {
-        await expect(
-            async () =>
-                new Sqids({
-                    alphabet: 'ë1092'
-                })
-        ).rejects.toThrow('Alphabet cannot contain multibyte characters');
-    });
-
--}
 multiByteCharacters : Test
 multiByteCharacters =
-    Test.todo "Reject multibyte characters"
+    Test.test "multibyte characters" <|
+        \() ->
+            Sqids.Context.new
+                |> Sqids.Context.withAlphabet "ë1092"
+                |> Sqids.Context.build
+                |> Expect.equal (Err <| Sqids.Context.AlphabetContainsMultibyteChar 'ë')
 
 
 {-|
