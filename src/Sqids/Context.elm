@@ -156,9 +156,10 @@ build { alphabet, minLength, blockList } =
                         Debug.todo "Invalid algorithm"
 
                     Ok shuffled ->
-                        { alphabet = shuffled
+                        { alphabet =
+                            shuffled
                         , minLength = minLength
-                        , blockList = blockList -- TODO
+                        , blockList = filteredBlockList chars blockList
                         }
                             |> Context
                             |> Ok
@@ -179,3 +180,28 @@ findInvalidChar known chars =
 
             else
                 findInvalidChar (Set.insert first known) rest
+
+
+{-| TODO
+
+    // clean up blocklist:
+    // 1. all blocklist words should be lowercase
+    // 2. no words less than 3 chars
+    // 3. if some words contain chars that are not in the alphabet, remove those
+    const filteredBlocklist = new Set<string>();
+    const alphabetChars = alphabet.toLowerCase().split('');
+    for (const word of blocklist) {
+        if (word.length >= 3) {
+            const wordLowercased = word.toLowerCase();
+            const wordChars = wordLowercased.split('');
+            const intersection = wordChars.filter((c) => alphabetChars.includes(c));
+            if (intersection.length == wordChars.length) {
+                filteredBlocklist.add(wordLowercased);
+            }
+        }
+    }
+
+-}
+filteredBlockList : List Char -> List String -> List String
+filteredBlockList alphabet initialBlockList =
+    initialBlockList
