@@ -199,38 +199,17 @@ encodeNumbers context increment numbers =
                                 Debug.todo <| "Shuffle error: " ++ Debug.toString err
                 in
                 List.Extra.indexedFoldl func { alphabet = reversedAlphabet, id = [ String.fromChar prefix ] } numbers
-                    |> .id
-                    |> List.reverse
-                    |> String.join ""
-
-            {-
-               // handle `minLength` requirement, if the ID is too short
-               if (this.minLength > id.length) {
-                   // append a separator
-                   id += alphabet.slice(0, 1);
-
-                   // keep appending `separator` + however much alphabet is needed
-                   // for decoding: two separators next to each other is what tells us the rest are junk characters
-                   while (this.minLength - id.length > 0) {
-                       alphabet = this.shuffle(alphabet);
-                       id += alphabet.slice(0, Math.min(this.minLength - id.length, alphabet.length));
-                   }
-               }
-
-               // if ID has a blocked word anywhere, restart with a +1 increment
-               if (this.isBlockedId(id)) {
-                   id = this.encodeNumbers(numbers, increment + 1);
-               }
-            -}
+                    |> padId minLength
         in
-        if String.length id < minLength then
-            -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts#L152-L163
-            Debug.todo "Append random characters if minimum length is not met"
-
-        else
-            -- TODO handle blocked words
-            -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts#L165-L168
-            Ok id
+        -- TODO handle blocked words
+        -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts#L165-L168
+        {-
+           // if ID has a blocked word anywhere, restart with a +1 increment
+           if (this.isBlockedId(id)) {
+               id = this.encodeNumbers(numbers, increment + 1);
+           }
+        -}
+        Ok id
 
 
 {-| TESTED
@@ -314,3 +293,37 @@ arrayGetInBounds : Int -> Array Char -> Char
 arrayGetInBounds index array =
     Array.get index array
         |> Maybe.withDefault 'ö'
+
+
+padId : Int -> { alphabet : Array Char, id : List String } -> String
+padId minLength { alphabet, id } =
+    padIdIfNeeded minLength alphabet id
+        |> List.reverse
+        |> String.join ""
+
+
+{-| TODO
+
+    // handle `minLength` requirement, if the ID is too short
+    if (this.minLength > id.length) {
+        // append a separator
+        id += alphabet.slice(0, 1);
+
+        // keep appending `separator` + however much alphabet is needed
+        // for decoding: two separators next to each other is what tells us the rest are junk characters
+        while (this.minLength - id.length > 0) {
+            alphabet = this.shuffle(alphabet);
+            id += alphabet.slice(0, Math.min(this.minLength - id.length, alphabet.length));
+        }
+    }
+
+-}
+padIdIfNeeded : Int -> Array Char -> List String -> List String
+padIdIfNeeded minLength alphabet id =
+    if minLength <= List.length id then
+        id
+
+    else
+        -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts#L152-L163
+        Debug.todo
+            "Append random characters if minimum length is not met"
