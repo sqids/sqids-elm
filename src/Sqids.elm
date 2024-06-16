@@ -106,6 +106,7 @@ encodeNumbers context increment numbers =
             Sqids.Context.getAlphabet context
 
         minLength =
+            -- TODO get from Context
             0
 
         alphabetLength =
