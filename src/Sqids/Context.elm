@@ -112,6 +112,7 @@ withBlockList blockList builder =
 type Error
     = AlphabetTooShort
     | AlphabetContainsMultibyteChar Char
+    | AlphabetContainsDuplicateChar Char
 
 
 errorToString : Error -> String
@@ -122,6 +123,9 @@ errorToString err =
 
         AlphabetContainsMultibyteChar char ->
             "Alphabet cannot contain multibyte character '" ++ String.fromChar char ++ "'"
+
+        AlphabetContainsDuplicateChar char ->
+            "Alphabet must contain only unique characters, but '" ++ String.fromChar char ++ "' is duplicate"
 
 
 build : ContextBuilder -> Result Error Context
@@ -134,9 +138,9 @@ build { alphabet, minLength, blockList } =
             chars =
                 alphabet |> String.toList
         in
-        case containsInvalidChar chars of
-            Just char ->
-                AlphabetContainsMultibyteChar char |> Err
+        case findInvalidChar Set.empty chars of
+            Just err ->
+                Err err
 
             Nothing ->
                 case chars |> Array.fromList |> Shuffle.charArray of
@@ -152,15 +156,18 @@ build { alphabet, minLength, blockList } =
                             |> Ok
 
 
-containsInvalidChar : List Char -> Maybe Char
-containsInvalidChar chars =
+findInvalidChar : Set Char -> List Char -> Maybe Error
+findInvalidChar known chars =
     case chars of
         [] ->
             Nothing
 
         first :: rest ->
-            if Debug.log "code" (Char.toCode (Debug.log "char" first)) < 0x80 then
-                containsInvalidChar rest
+            if Char.toCode first >= 0x80 then
+                AlphabetContainsMultibyteChar first |> Just
+
+            else if Set.member first known then
+                AlphabetContainsDuplicateChar first |> Just
 
             else
-                Just first
+                findInvalidChar (Set.insert first known) rest

@@ -1,7 +1,6 @@
 module Alphabet exposing (..)
 
-{- Same tests as in https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/tests/alphabet.test.ts
-
+{-| Same tests as in <https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/tests/alphabet.test.ts>
 -}
 
 import Expect
@@ -47,21 +46,14 @@ multiByteCharacters =
                 |> Expect.equal (Err <| Sqids.Context.AlphabetContainsMultibyteChar 'ë')
 
 
-{-|
-
-    test('repeating alphabet characters', async () => {
-        await expect(
-            async () =>
-                new Sqids({
-                    alphabet: 'aabcdefg'
-                })
-        ).rejects.toThrow('Alphabet must contain unique characters');
-    });
-
--}
 repeatingAlphabet : Test
 repeatingAlphabet =
-    Test.todo "Reject repeating characters in alphabet"
+    Test.test "repeating alphabet characters" <|
+        \() ->
+            Sqids.Context.new
+                |> Sqids.Context.withAlphabet "aabcdefg"
+                |> Sqids.Context.build
+                |> Expect.equal (Err <| Sqids.Context.AlphabetContainsDuplicateChar 'a')
 
 
 tooShort : Test
