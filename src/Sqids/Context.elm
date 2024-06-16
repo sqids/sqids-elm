@@ -4,6 +4,7 @@ module Sqids.Context exposing
     , build
     , default
     , defaultAlphabet
+    , from
     , getAlphabet
     , new
     , withAlphabet
@@ -56,6 +57,20 @@ allInAlphabet (Context { alphabet }) string =
 getAlphabet : Context -> Array Char
 getAlphabet (Context { alphabet }) =
     alphabet
+
+
+{-| Construct a Context by passing all options.
+
+Alternative to using the builder pattern starting `new`.
+
+-}
+from : ContextBuilder -> Result Error Context
+from { alphabet, minLength, blockList } =
+    new
+        |> withAlphabet alphabet
+        |> withMinLength minLength
+        |> withBlockList blockList
+        |> build
 
 
 
