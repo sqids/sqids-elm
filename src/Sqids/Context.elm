@@ -15,6 +15,7 @@ module Sqids.Context exposing
     )
 
 import Array exposing (Array)
+import Html.Attributes exposing (minlength)
 import Set exposing (Set)
 import Shuffle
 
@@ -113,6 +114,7 @@ type Error
     = AlphabetTooShort
     | AlphabetContainsMultibyteChar Char
     | AlphabetContainsDuplicateChar Char
+    | MinLengthInvalid Int
 
 
 errorToString : Error -> String
@@ -127,10 +129,16 @@ errorToString err =
         AlphabetContainsDuplicateChar char ->
             "Alphabet must contain only unique characters, but '" ++ String.fromChar char ++ "' is duplicate"
 
+        MinLengthInvalid int ->
+            "Minimum length has to be between 0 and 255, but was " ++ String.fromInt int
+
 
 build : ContextBuilder -> Result Error Context
 build { alphabet, minLength, blockList } =
-    if String.length alphabet < 3 then
+    if minLength < 0 || minLength > 255 then
+        MinLengthInvalid minLength |> Err
+
+    else if String.length alphabet < 3 then
         Err AlphabetTooShort
 
     else
