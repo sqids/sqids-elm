@@ -92,6 +92,7 @@ validInput list =
                 validInput rest
 
 
+maxSafeInt : Int
 maxSafeInt =
     -- 2^53 - 1 (`Number.MAX_SAFE_INTEGER` in JS)
     9007199254740991
