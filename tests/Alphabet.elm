@@ -12,7 +12,7 @@ import Test exposing (Test, describe)
 
 simple : Test
 simple =
-    describe "simple"
+    describe "simple Alphabet test"
         [ Helpers.roundTripTestWith
             (contextWithAlphabet "0123456789abcdef")
             [ 1, 2, 3 ]
