@@ -8,6 +8,7 @@ module Sqids.Context exposing
     , errorToString
     , from
     , getAlphabet
+    , getMinLength
     , new
     , withAlphabet
     , withBlockList
@@ -60,6 +61,11 @@ allInAlphabet (Context { alphabet }) string =
 getAlphabet : Context -> Array Char
 getAlphabet (Context { alphabet }) =
     alphabet
+
+
+getMinLength : Context -> Int
+getMinLength (Context { minLength }) =
+    minLength
 
 
 {-| Construct a Context by passing all options.

@@ -13,6 +13,7 @@ import Array exposing (Array)
 import Array.Extra
 import Defaults exposing (Context)
 import List.Extra
+import Result.Extra
 import Shuffle
 import Sqids.Context
 
@@ -105,10 +106,6 @@ encodeNumbers context increment numbers =
         initialAlphabet =
             Sqids.Context.getAlphabet context
 
-        minLength =
-            -- TODO get from Context
-            0
-
         alphabetLength =
             Array.length initialAlphabet
     in
@@ -182,24 +179,19 @@ encodeNumbers context increment numbers =
                             id_ : String
                             id_ =
                                 toId num alphabetWithoutSeparator
-
-                            ids =
-                                if index < (List.length numbers - 1) then
-                                    String.fromChar separator :: id_ :: last.id
-
-                                else
-                                    id_ :: last.id
                         in
-                        case Shuffle.charArray last.alphabet of
-                            Ok alphabet ->
-                                { alphabet = alphabet, id = ids }
+                        if index < (List.length numbers - 1) then
+                            { id = String.fromChar separator :: id_ :: last.id
+                            , alphabet = shuffle last.alphabet
+                            }
 
-                            Err err ->
-                                -- last
-                                Debug.todo <| "Shuffle error: " ++ Debug.toString err
+                        else
+                            { id = id_ :: last.id
+                            , alphabet = last.alphabet
+                            }
                 in
                 List.Extra.indexedFoldl func { alphabet = reversedAlphabet, id = [ String.fromChar prefix ] } numbers
-                    |> padId minLength
+                    |> padId (Sqids.Context.getMinLength context)
         in
         -- TODO handle blocked words
         -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts#L165-L168
@@ -302,28 +294,48 @@ padId minLength { alphabet, id } =
         |> String.join ""
 
 
-{-| TODO
-
-    // handle `minLength` requirement, if the ID is too short
-    if (this.minLength > id.length) {
-        // append a separator
-        id += alphabet.slice(0, 1);
-
-        // keep appending `separator` + however much alphabet is needed
-        // for decoding: two separators next to each other is what tells us the rest are junk characters
-        while (this.minLength - id.length > 0) {
-            alphabet = this.shuffle(alphabet);
-            id += alphabet.slice(0, Math.min(this.minLength - id.length, alphabet.length));
-        }
-    }
-
--}
 padIdIfNeeded : Int -> Array Char -> List String -> List String
 padIdIfNeeded minLength alphabet id =
     if minLength <= List.length id then
         id
 
     else
+        let
+            idWithSeparator : List String
+            idWithSeparator =
+                (arrayGetInBounds 0 alphabet |> String.fromChar)
+                    :: id
+
+            rec : Array Char -> List String -> List String
+            rec abc currentId =
+                let
+                    diff =
+                        minLength
+                            - List.length currentId
+                            |> Debug.log "diff"
+                in
+                if diff < 1 then
+                    currentId
+
+                else
+                    let
+                        shuffled =
+                            shuffle abc
+
+                        nextId : List String
+                        nextId =
+                            Array.slice 0 diff shuffled
+                                |> Array.foldl ((::) << String.fromChar) []
+                                |> (\chars -> chars ++ currentId)
+                    in
+                    rec shuffled nextId
+        in
         -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts#L152-L163
-        Debug.todo
-            "Append random characters if minimum length is not met"
+        rec alphabet idWithSeparator
+
+
+shuffle : Array Char -> Array Char
+shuffle before =
+    Shuffle.charArray before
+        -- TODO decide if I want to catch these (impossible-by-algorithm) cases here, or inside `Shuffle`
+        |> Result.Extra.extract (Debug.todo << Debug.toString)
