@@ -1,14 +1,11 @@
 module Draft exposing (..)
 
-import Array exposing (Array)
-import Array.Extra
+import Array
 import Defaults exposing (Context)
 import Expect
+import Fuzz
 import Helpers exposing (testFn)
-import Html.Attributes exposing (value)
-import List.Extra
 import Result.Extra
-import Shuffle
 import Sqids
 import Sqids.Context
 import Test exposing (Test, describe)
@@ -58,3 +55,22 @@ testToId =
     ]
         |> List.indexedMap (\index expectation -> Test.test (String.fromInt index ++ ":") <| \() -> expectation)
         |> Test.concat
+
+
+singleIntFuzz : Test
+singleIntFuzz =
+    Test.fuzz (Fuzz.intAtLeast 0) "roundtrip tests" <|
+        \int ->
+            let
+                context =
+                    Sqids.Context.default
+
+                numbers =
+                    [ int ]
+            in
+            Sqids.encodeListWith context numbers
+                |> Debug.log "encoded"
+                |> Result.Extra.extract (Debug.todo << Debug.toString)
+                |> Sqids.decodeWith context
+                |> Debug.log "decoded"
+                |> Expect.equal numbers

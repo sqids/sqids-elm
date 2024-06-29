@@ -1,7 +1,6 @@
 module Sqids.Context exposing
     ( Context
     , Error(..)
-    , allInAlphabet
     , build
     , default
     , defaultAlphabet
@@ -42,20 +41,6 @@ default =
 defaultAlphabet : String
 defaultAlphabet =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-
-allInAlphabet : Context -> String -> Bool
-allInAlphabet (Context { alphabet }) string =
-    let
-        alphabetSet : Set Char
-        alphabetSet =
-            Set.fromList <| Array.toList alphabet
-
-        isInAlphabet : Char -> Bool
-        isInAlphabet char =
-            Set.member char alphabetSet
-    in
-    List.all isInAlphabet (String.toList string)
 
 
 getAlphabet : Context -> Array Char

@@ -14,6 +14,7 @@ import Array.Extra
 import Defaults exposing (Context)
 import List.Extra
 import Result.Extra
+import Set exposing (Set)
 import Shuffle
 import Sqids.Context
 
@@ -45,16 +46,141 @@ decode =
     decodeWith Defaults.context
 
 
+{-| Decodes an ID back into an array of unsigned integers
+These are the cases where the return value might be an empty array:
+
+  - Empty ID / empty string
+  - Non-alphabet character is found within ID
+
+-}
 decodeWith : Context -> String -> List Int
-decodeWith context string =
-    if string == "" then
-        []
+decodeWith context id =
+    case String.uncons id of
+        Nothing ->
+            -- string is empty, return an empty list
+            []
 
-    else if Sqids.Context.allInAlphabet context string then
-        Debug.todo "implement decodeWith"
+        -- first character is always the `prefix`
+        Just ( prefix_, idWithoutPrefix ) ->
+            let
+                initialAlphabet =
+                    Sqids.Context.getAlphabet context
+                        |> Array.toList
 
-    else
-        []
+                alphabetSet : Set Char
+                alphabetSet =
+                    Set.fromList initialAlphabet
+
+                isInAlphabet : Char -> Bool
+                isInAlphabet char =
+                    Set.member char alphabetSet
+
+                findProperAlphabet : List Char -> DecodeWithLoop -> Result DecodeError (List Char)
+                findProperAlphabet chars acc =
+                    case ( acc, chars ) of
+                        ( SearchForPrefix { prefix }, [] ) ->
+                            Err <| CharacterNotInAlphabet prefix
+
+                        ( SearchForPrefix { prefix, beforePrefix }, first :: rest ) ->
+                            if isInAlphabet first then
+                                if first == prefix then
+                                    ValidateAfterPrefix { chunk1 = beforePrefix, chunk2 = [ prefix ] }
+                                        |> findProperAlphabet rest
+
+                                else
+                                    SearchForPrefix { prefix = prefix, beforePrefix = first :: beforePrefix }
+                                        |> findProperAlphabet rest
+
+                            else
+                                CharacterNotInAlphabet first |> Err
+
+                        ( ValidateAfterPrefix { chunk1, chunk2 }, [] ) ->
+                            Ok (chunk1 ++ chunk2)
+
+                        ( ValidateAfterPrefix { chunk1, chunk2 }, first :: rest ) ->
+                            if isInAlphabet first then
+                                ValidateAfterPrefix { chunk1 = chunk1, chunk2 = first :: chunk2 }
+                                    |> findProperAlphabet rest
+
+                            else
+                                Err <| CharacterNotInAlphabet first
+            in
+            case
+                SearchForPrefix { prefix = prefix_, beforePrefix = [] }
+                    |> findProperAlphabet initialAlphabet
+            of
+                Ok alphabet ->
+                    decodeWithAlphabet (Array.fromList alphabet) idWithoutPrefix
+
+                Err _ ->
+                    []
+
+
+type DecodeWithLoop
+    = SearchForPrefix { prefix : Char, beforePrefix : List Char }
+    | ValidateAfterPrefix { chunk1 : List Char, chunk2 : List Char }
+
+
+type DecodeError
+    = EmptyString
+    | CharacterNotInAlphabet Char
+
+
+decodeWithAlphabet : Array Char -> String -> List Int
+decodeWithAlphabet alphabet id =
+    decodeWithAlphabetHelper [] id alphabet
+
+
+decodeWithAlphabetHelper : List Int -> String -> Array Char -> List Int
+decodeWithAlphabetHelper reversedIdNumbers idString alphabet =
+    let
+        separator =
+            arrayGetInBounds 0 alphabet |> String.fromChar |> Debug.log "separator"
+    in
+    --  we need the first part to the left of the separator to decode the number
+    case String.split separator idString |> Debug.log "chunks" of
+        [] ->
+            List.reverse reversedIdNumbers
+
+        "" :: _ ->
+            -- if chunk is empty, we are done (the rest are junk characters)
+            List.reverse reversedIdNumbers
+
+        chunk :: _ ->
+            -- decode the number without using the `separator` character
+            let
+                alphabetWithoutSeparator =
+                    Array.slice 1 (Array.length alphabet) alphabet
+
+                number =
+                    toNumber (String.toList chunk) alphabetWithoutSeparator
+            in
+            decodeWithAlphabetHelper (number :: reversedIdNumbers)
+                (String.dropLeft (String.length chunk + 1) idString)
+                (shuffle alphabet)
+
+
+toNumber : List Char -> Array Char -> Int
+toNumber id alphabet =
+    List.foldl (\v a -> a * Array.length alphabet + findIndexInArray v alphabet) 0 id
+
+
+findIndexInArray : a -> Array a -> Int
+findIndexInArray a array =
+    let
+        inner index =
+            Array.get index array
+                |> Maybe.andThen
+                    (\value ->
+                        if value == a then
+                            Just index
+
+                        else
+                            inner (index + 1)
+                    )
+    in
+    inner 0
+        |> Maybe.withDefault -1
 
 
 encodeList : List Int -> Result EncodeError String

@@ -31,7 +31,6 @@ roundTripTestWith context numbers id =
     describe (Debug.toString numbers ++ " <-> " ++ id)
         [ testFn (Sqids.encodeListWith context) numbers (Ok id)
         , testFn (Sqids.decodeWith context) id numbers
-            |> Test.skip
         ]
 
 

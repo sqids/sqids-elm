@@ -33,7 +33,6 @@ longAlphabet =
     Helpers.testEncodeDecode "long alphabet"
         (contextWithAlphabet "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_+|{}[];:'\"/?.>,<`~")
         [ 1, 2, 3 ]
-        |> Test.skip
 
 
 multiByteCharacters : Test
