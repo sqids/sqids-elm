@@ -17,19 +17,15 @@ simple =
         ]
 
 
-{-| TODO
-
-    test('different inputs', () => {
-        const sqids = new Sqids();
-
-        const numbers = [0, 0, 0, 1, 2, 3, 100, 1_000, 100_000, 1_000_000, Number.MAX_SAFE_INTEGER];
-        expect.soft(sqids.decode(sqids.encode(numbers))).toEqual(numbers);
-    });
-
--}
 differentInputs : Test
 differentInputs =
-    Test.todo "needs decode"
+    Helpers.testRoundTrip "different inputs"
+        Sqids.Context.default
+        -- [ 0, 0, 0, 1, 2, 3, 100, 1000, 100000, 1000000]--, Sqids.maxSafeInt ]
+        -- [ Sqids.maxSafeInt ]
+        [ 900719925427 ]
+        -- faulty encoding, ts has different values
+        |> Test.skip
 
 
 incrementalNumbers : Test
