@@ -13,7 +13,7 @@ import Test exposing (Test, describe)
 simple : Test
 simple =
     describe "simple Alphabet test"
-        [ Helpers.roundTripTestWith
+        [ Helpers.testEncoderAndDecoderWith
             (contextWithAlphabet "0123456789abcdef")
             [ 1, 2, 3 ]
             "489158"
@@ -22,7 +22,7 @@ simple =
 
 shortAlphabet : Test
 shortAlphabet =
-    Helpers.roundTripTestWith
+    Helpers.testEncoderAndDecoderWith
         (contextWithAlphabet "abc")
         [ 1, 2, 3 ]
         "aacacbaa"
@@ -30,7 +30,7 @@ shortAlphabet =
 
 longAlphabet : Test
 longAlphabet =
-    Helpers.testEncodeDecode "long alphabet"
+    Helpers.testRoundTrip "long alphabet"
         (contextWithAlphabet "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_+|{}[];:'\"/?.>,<`~")
         [ 1, 2, 3 ]
 

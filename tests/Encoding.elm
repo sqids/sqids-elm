@@ -13,7 +13,8 @@ import Test exposing (Test, describe)
 simple : Test
 simple =
     describe "simple encoding test"
-        [ Helpers.roundTripTest [ 1, 2, 3 ] "86Rf07" ]
+        [ Helpers.testEncoderAndDecoder [ 1, 2, 3 ] "86Rf07"
+        ]
 
 
 {-| TODO
@@ -33,7 +34,7 @@ differentInputs =
 
 incrementalNumbers : Test
 incrementalNumbers =
-    Helpers.roundTripTests "incremental numbers"
+    Helpers.testEncoderAndDecoders "incremental numbers"
         [ ( "bM", [ 0 ] )
         , ( "Uk", [ 1 ] )
         , ( "gb", [ 2 ] )
@@ -49,7 +50,7 @@ incrementalNumbers =
 
 incrementalNumbersSameIndex0 : Test
 incrementalNumbersSameIndex0 =
-    Helpers.roundTripTests "incremental numbers, same index 0"
+    Helpers.testEncoderAndDecoders "incremental numbers, same index 0"
         [ ( "SvIz", [ 0, 0 ] )
         , ( "n3qa", [ 0, 1 ] )
         , ( "tryF", [ 0, 2 ] )
@@ -65,7 +66,7 @@ incrementalNumbersSameIndex0 =
 
 incrementalNumbersSameIndex1 : Test
 incrementalNumbersSameIndex1 =
-    Helpers.roundTripTests "incremental numbers, same index 1"
+    Helpers.testEncoderAndDecoders "incremental numbers, same index 1"
         [ ( "SvIz", [ 0, 0 ] )
         , ( "nWqP", [ 1, 0 ] )
         , ( "tSyw", [ 2, 0 ] )

@@ -13,29 +13,29 @@ testFn fn input output =
         \() -> fn input |> Expect.equal output
 
 
-roundTripTests : String -> List ( String, List Int ) -> Test
-roundTripTests title tests =
+testEncoderAndDecoders : String -> List ( String, List Int ) -> Test
+testEncoderAndDecoders title tests =
     describe title <|
         List.map
-            (\( id, numbers ) -> roundTripTest numbers id)
+            (\( id, numbers ) -> testEncoderAndDecoder numbers id)
             tests
 
 
-roundTripTest : List Int -> String -> Test
-roundTripTest =
-    roundTripTestWith Sqids.Context.default
+testEncoderAndDecoder : List Int -> String -> Test
+testEncoderAndDecoder =
+    testEncoderAndDecoderWith Sqids.Context.default
 
 
-roundTripTestWith : Context -> List Int -> String -> Test
-roundTripTestWith context numbers id =
+testEncoderAndDecoderWith : Context -> List Int -> String -> Test
+testEncoderAndDecoderWith context numbers id =
     describe (Debug.toString numbers ++ " <-> " ++ id)
         [ testFn (Sqids.encodeListWith context) numbers (Ok id)
         , testFn (Sqids.decodeWith context) id numbers
         ]
 
 
-testEncodeDecode : String -> Context -> List Int -> Test
-testEncodeDecode title context numbers =
+testRoundTrip : String -> Context -> List Int -> Test
+testRoundTrip title context numbers =
     Test.test title <|
         \() ->
             Sqids.encodeListWith context numbers

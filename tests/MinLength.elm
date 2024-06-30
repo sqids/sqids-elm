@@ -19,7 +19,7 @@ defaultAlphabetLength =
 simple : Test
 simple =
     describe "simple MinLength test"
-        [ Helpers.roundTripTestWith
+        [ Helpers.testEncoderAndDecoderWith
             (contextWithMinLength <| defaultAlphabetLength)
             [ 1, 2, 3 ]
             "86Rf07xd4zBmiJXQG6otHEbew02c3PWsUOLZxADhCpKj7aVFv9I8RquYrNlSTM"
@@ -44,7 +44,7 @@ incremental =
          ]
             |> List.map
                 (\( minLength, output ) ->
-                    Helpers.roundTripTestWith
+                    Helpers.testEncoderAndDecoderWith
                         (contextWithMinLength minLength)
                         [ 1, 2, 3 ]
                         output
@@ -68,7 +68,7 @@ incrementalNumbers =
          ]
             |> List.map
                 (\( output, input ) ->
-                    Helpers.roundTripTestWith
+                    Helpers.testEncoderAndDecoderWith
                         (contextWithMinLength <| defaultAlphabetLength)
                         input
                         output
