@@ -4,6 +4,7 @@ module ContextBuilder exposing (..)
 -}
 
 import Expect
+import Fuzz
 import Sqids.Context
 import Test exposing (Test, describe)
 
@@ -35,4 +36,28 @@ minLength =
                     |> Sqids.Context.withMinLength 256
                     |> Sqids.Context.build
                     |> Expect.equal (Err (Sqids.Context.MinLengthInvalid 256))
+        ]
+
+
+blockList : Test
+blockList =
+    describe "block list"
+        [ Test.fuzz (Fuzz.stringOfLengthBetween 0 2) "must be at least 3 characters" <|
+            \str ->
+                Sqids.Context.new
+                    |> Sqids.Context.withBlockList [ str ]
+                    |> Sqids.Context.build
+                    |> Expect.equal (Err (Sqids.Context.BlockedWordNeedsAtLeastThreeChars str))
+        , Test.test "is ok" <|
+            \() ->
+                Sqids.Context.new
+                    |> Sqids.Context.withBlockList [ "abc" ]
+                    |> Sqids.Context.build
+                    |> Expect.ok
+        , Test.test "must not contain UPPERCASE characters" <|
+            \() ->
+                Sqids.Context.new
+                    |> Sqids.Context.withBlockList [ "abC" ]
+                    |> Sqids.Context.build
+                    |> Expect.equal (Err (Sqids.Context.BlockedWordMustBeLowercase "abC"))
         ]

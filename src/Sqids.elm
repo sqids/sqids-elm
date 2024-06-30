@@ -327,7 +327,11 @@ encodeNumbers context increment numbers =
                id = this.encodeNumbers(numbers, increment + 1);
            }
         -}
-        Ok id
+        if Sqids.Context.containsBlockedWord context id then
+            encodeNumbers context (increment + 1) numbers
+
+        else
+            Ok id
 
 
 {-| TESTED

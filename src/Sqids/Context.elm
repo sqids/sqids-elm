@@ -2,8 +2,10 @@ module Sqids.Context exposing
     ( Context
     , Error(..)
     , build
+    , containsBlockedWord
     , default
     , defaultAlphabet
+    , defaultBlockList
     , errorToString
     , from
     , getAlphabet
@@ -15,9 +17,9 @@ module Sqids.Context exposing
     )
 
 import Array exposing (Array)
-import Html.Attributes exposing (minlength)
 import Set exposing (Set)
 import Shuffle
+import Sqids.BlockList
 
 
 type Context
@@ -33,7 +35,7 @@ default =
     -- shuffled default alphabet
     { alphabet = "fwjBhEY2uczNPDiloxmvISCrytaJO4d71T0W3qnMZbXVHg6eR8sAQ5KkpLUGF9" |> String.toList |> Array.fromList
     , minLength = 0
-    , blockList = [] -- TODO
+    , blockList = Sqids.BlockList.default
     }
         |> Context
 
@@ -41,6 +43,11 @@ default =
 defaultAlphabet : String
 defaultAlphabet =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+
+defaultBlockList : List String
+defaultBlockList =
+    Sqids.BlockList.default
 
 
 getAlphabet : Context -> Array Char
@@ -106,6 +113,8 @@ type Error
     | AlphabetContainsMultibyteChar Char
     | AlphabetContainsDuplicateChar Char
     | MinLengthInvalid Int
+    | BlockedWordNeedsAtLeastThreeChars String
+    | BlockedWordMustBeLowercase String
 
 
 errorToString : Error -> String
@@ -123,6 +132,12 @@ errorToString err =
         MinLengthInvalid int ->
             "Minimum length has to be between 0 and 255, but was " ++ String.fromInt int
 
+        BlockedWordNeedsAtLeastThreeChars str ->
+            "Each word in the block list needs at least three characters, but '" ++ str ++ "' is shorter"
+
+        BlockedWordMustBeLowercase str ->
+            "Each word in the block list must only use lower cased characters, but '" ++ str ++ "' does not"
+
 
 build : ContextBuilder -> Result Error Context
 build { alphabet, minLength, blockList } =
@@ -137,62 +152,110 @@ build { alphabet, minLength, blockList } =
             chars =
                 alphabet |> String.toList
         in
-        case findInvalidChar Set.empty chars of
-            Just err ->
-                Err err
+        findInvalidChar Set.empty chars
+            |> Result.andThen (\() -> isValidBlockList blockList)
+            |> Result.andThen
+                (\() ->
+                    case chars |> Array.fromList |> Shuffle.charArray of
+                        Err _ ->
+                            Debug.todo "Invalid shuffle algorithm"
 
-            Nothing ->
-                case chars |> Array.fromList |> Shuffle.charArray of
-                    Err _ ->
-                        Debug.todo "Invalid algorithm"
-
-                    Ok shuffled ->
-                        { alphabet =
-                            shuffled
-                        , minLength = minLength
-                        , blockList = filteredBlockList chars blockList
-                        }
-                            |> Context
-                            |> Ok
+                        Ok shuffled ->
+                            { alphabet = shuffled
+                            , minLength = minLength
+                            , blockList = filteredBlockList chars blockList
+                            }
+                                |> Context
+                                |> Ok
+                )
 
 
-findInvalidChar : Set Char -> List Char -> Maybe Error
+findInvalidChar : Set Char -> List Char -> Result Error ()
 findInvalidChar known chars =
     case chars of
         [] ->
-            Nothing
+            Ok ()
 
         first :: rest ->
             if Char.toCode first >= 0x80 then
-                AlphabetContainsMultibyteChar first |> Just
+                AlphabetContainsMultibyteChar first |> Err
 
             else if Set.member first known then
-                AlphabetContainsDuplicateChar first |> Just
+                AlphabetContainsDuplicateChar first |> Err
 
             else
                 findInvalidChar (Set.insert first known) rest
 
 
-{-| TODO
+isValidBlockList : List String -> Result Error ()
+isValidBlockList blockList =
+    case blockList of
+        [] ->
+            Ok ()
 
-    // clean up blocklist:
-    // 1. all blocklist words should be lowercase
-    // 2. no words less than 3 chars
-    // 3. if some words contain chars that are not in the alphabet, remove those
-    const filteredBlocklist = new Set<string>();
-    const alphabetChars = alphabet.toLowerCase().split('');
-    for (const word of blocklist) {
-        if (word.length >= 3) {
-            const wordLowercased = word.toLowerCase();
-            const wordChars = wordLowercased.split('');
-            const intersection = wordChars.filter((c) => alphabetChars.includes(c));
-            if (intersection.length == wordChars.length) {
-                filteredBlocklist.add(wordLowercased);
-            }
-        }
-    }
+        first :: rest ->
+            if String.length first < 3 then
+                BlockedWordNeedsAtLeastThreeChars first |> Err
+
+            else if String.toLower first /= first then
+                BlockedWordMustBeLowercase first |> Err
+
+            else
+                isValidBlockList rest
+
+
+{-| The TS code ignores invalid blocklist words, we return errors instead.
+
+That way no user will insert different upper and lower cased spelling into the block list, accidentally increasing the size.
+
+We only silently drop valid words from the blocklist if they contain characters that are not in the chosen alphabet
+
+This leaves us with the following:
+
+1.  all blocklist words should be lowercase -> Err BlockedWordMustBeLowercase
+2.  no words less than 3 chars -> Err BlockedWordNeedsAtLeastThreeChars
+3.  if some words contain chars that are not in the alphabet, remove those
 
 -}
 filteredBlockList : List Char -> List String -> List String
-filteredBlockList alphabet initialBlockList =
-    initialBlockList
+filteredBlockList alphabet =
+    let
+        abc =
+            Set.fromList <| List.map Char.toLower alphabet
+    in
+    List.filter (\word -> List.all (\char -> Set.member char abc) (String.toList word))
+
+
+containsBlockedWord : Context -> String -> Bool
+containsBlockedWord (Context { blockList }) id =
+    isBlocked (String.toLower id) blockList
+
+
+isBlocked : String -> List String -> Bool
+isBlocked loweredId blockList =
+    case blockList of
+        [] ->
+            False
+
+        first :: rest ->
+            if String.length first > String.length loweredId then
+                -- no point in checking words that are longer than the ID
+                isBlocked loweredId rest
+
+            else if String.length loweredId <= 3 || String.length first <= 3 then
+                -- short words have to match completely; otherwise, too many matches
+                if loweredId == first then
+                    True
+
+                else
+                    isBlocked loweredId rest
+
+            else if
+                String.startsWith first loweredId
+                    || String.endsWith first loweredId
+                    || String.contains first loweredId
+            then
+                True
+
+            else
+                isBlocked loweredId rest
