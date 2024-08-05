@@ -63,7 +63,11 @@ singleIntFuzz =
         \int ->
             let
                 context =
-                    Sqids.Context.default
+                    Sqids.Context.new
+                        -- fuzzing tests with the block list is very slow
+                        |> Sqids.Context.withBlockList []
+                        |> Sqids.Context.build
+                        |> Result.Extra.extract (Debug.todo << Debug.toString)
 
                 numbers =
                     [ int ]
