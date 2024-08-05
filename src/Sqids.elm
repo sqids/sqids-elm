@@ -231,6 +231,7 @@ encodeNumbers context increment numbers =
         initialAlphabet =
             Sqids.Context.getAlphabet context
 
+        alphabetLength : Int
         alphabetLength =
             Array.length initialAlphabet
     in
@@ -241,6 +242,7 @@ encodeNumbers context increment numbers =
     else
         let
             -- get a semi-random offset from input numbers
+            offset : Int
             offset =
                 generateOffsetFromInputs initialAlphabet numbers
                     + increment
@@ -248,45 +250,25 @@ encodeNumbers context increment numbers =
                     |> Debug.log "offset"
 
             --  re-arrange alphabet so that second-half goes in front of the first-half
+            reorderedAlphabet : Array Char
             reorderedAlphabet =
                 Array.append (Array.slice offset alphabetLength initialAlphabet)
                     (Array.slice 0 offset initialAlphabet)
                     |> Debug.log "reordered alphabet"
 
             -- `prefix` is the first character in the generated ID, used for randomization
+            prefix : Char
             prefix =
                 arrayGetInBounds 0 reorderedAlphabet
 
             -- reverse alphabet (otherwise for [0, x] `offset` and `separator` will be the same char)
+            reversedAlphabet : Array Char
             reversedAlphabet =
                 Array.Extra.reverse reorderedAlphabet
                     |> Debug.log "reversed alphabet"
 
-            {- TODO list
-                // final ID will always have the `prefix` character at the beginning
-               const ret = [prefix];
 
-               // encode input array
-               for (let i = 0; i != numbers.length; i++) {
-                   const num = numbers[i];
-
-                   // the first character of the alphabet is going to be reserved for the `separator`
-                   const alphabetWithoutSeparator = alphabet.slice(1);
-                   ret.push(this.toId(num, alphabetWithoutSeparator));
-
-                   // if not the last number
-                   if (i < numbers.length - 1) {
-                       // `separator` character is used to isolate numbers within the ID
-                       ret.push(alphabet.slice(0, 1));
-
-                       // shuffle on every iteration
-                       alphabet = this.shuffle(alphabet);
-                   }
-               }
-
-               // join all the parts to form an ID
-               let id = ret.join('');
-            -}
+            id : String
             id =
                 let
                     func : Int -> Int -> { alphabet : Array Char, id : List String } -> { alphabet : Array Char, id : List String }
@@ -295,9 +277,11 @@ encodeNumbers context increment numbers =
                             _ =
                                 Debug.log ("step " ++ String.fromInt index) { num = num, last = last }
 
+                            alphabetWithoutSeparator : Array Char
                             alphabetWithoutSeparator =
                                 Array.slice 1 alphabetLength last.alphabet
 
+                            separator : Char
                             separator =
                                 arrayGetInBounds 0 last.alphabet
 

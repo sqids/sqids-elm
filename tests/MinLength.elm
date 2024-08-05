@@ -82,9 +82,11 @@ minLengths =
         test : Int -> List Int -> Test
         test minLength numbers =
             let
+                context : Context
                 context =
                     contextWithMinLength minLength
 
+                id : String
                 id =
                     Sqids.encodeListWith context numbers
                         |> Result.Extra.extract (Debug.todo << Debug.toString)
