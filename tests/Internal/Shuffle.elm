@@ -3,6 +3,7 @@ module Internal.Shuffle exposing (..)
 {-| Same tests as in <https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/tests/internal/shuffle.test.ts>
 -}
 
+import Array
 import Expect
 import Shuffle
 import Sqids.Context
@@ -49,5 +50,10 @@ test : String -> String -> String -> Test
 test title input output =
     Test.test title <|
         \() ->
-            Shuffle.string input
+            input
+                |> String.toList
+                |> Array.fromList
+                |> Shuffle.charArray
+                |> Array.toList
+                |> String.fromList
                 |> Expect.equal output

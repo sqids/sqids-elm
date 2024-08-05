@@ -1,7 +1,4 @@
-module Shuffle exposing
-    ( charArray
-    , string
-    )
+module Shuffle exposing (charArray)
 
 import Array exposing (Array)
 
@@ -21,20 +18,6 @@ From <https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974e
     }
 
 -}
-string : String -> String
-string input =
-    input
-        |> String.toList
-        |> Array.fromList
-        |> charArray
-        |> Array.toList
-        |> String.fromList
-
-
-type ShuffleError
-    = CharDoesNotExist Int (Array Char)
-
-
 charArray : Array Char -> Array Char
 charArray input =
     let
@@ -44,6 +27,10 @@ charArray input =
     shuf 0 (length - 1) length input
         -- trusting the algorithm and ignoring out-of-bounds array access errors
         |> Result.withDefault Array.empty
+
+
+type ShuffleError
+    = CharDoesNotExist Int (Array Char)
 
 
 shuf : Int -> Int -> Int -> Array Char -> Result ShuffleError (Array Char)
