@@ -174,7 +174,7 @@ decodeWithAlphabetHelper reversedIdNumbers idString alphabet =
             in
             decodeWithAlphabetHelper (number :: reversedIdNumbers)
                 (String.dropLeft (String.length chunk + 1) idString)
-                (shuffle alphabet)
+                (Shuffle.charArray alphabet)
 
 
 toNumber : List Char -> Array Char -> Int
@@ -309,7 +309,7 @@ encodeNumbers context increment numbers =
                         in
                         if index < (List.length numbers - 1) then
                             { id = String.fromChar separator :: id_ :: last.id
-                            , alphabet = shuffle last.alphabet
+                            , alphabet = Shuffle.charArray last.alphabet
                             }
 
                         else
@@ -444,7 +444,7 @@ padIdIfNeeded minLength alphabet id =
                 else
                     let
                         shuffled =
-                            shuffle abc
+                            Shuffle.charArray abc
 
                         nextId : List String
                         nextId =
@@ -456,10 +456,3 @@ padIdIfNeeded minLength alphabet id =
         in
         -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts#L152-L163
         rec alphabet idWithSeparator
-
-
-shuffle : Array Char -> Array Char
-shuffle before =
-    Shuffle.charArray before
-        -- TODO decide if I want to catch these (impossible-by-algorithm) cases here, or inside `Shuffle`
-        |> Result.Extra.extract (Debug.todo << Debug.toString)

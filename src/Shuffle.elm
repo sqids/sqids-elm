@@ -21,30 +21,29 @@ From <https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974e
     }
 
 -}
-string : String -> Result ShuffleError String
+string : String -> String
 string input =
-    let
-        length =
-            String.length input
-
-        chars =
-            input |> String.toList |> Array.fromList
-    in
-    shuf 0 (length - 1) length chars
-        |> Result.map (Array.toList >> String.fromList)
+    input
+        |> String.toList
+        |> Array.fromList
+        |> charArray
+        |> Array.toList
+        |> String.fromList
 
 
 type ShuffleError
     = CharDoesNotExist Int (Array Char)
 
 
-charArray : Array Char -> Result ShuffleError (Array Char)
+charArray : Array Char -> Array Char
 charArray input =
     let
         length =
             Array.length input
     in
     shuf 0 (length - 1) length input
+        -- trusting the algorithm and ignoring out-of-bounds array access errors
+        |> Result.withDefault Array.empty
 
 
 shuf : Int -> Int -> Int -> Array Char -> Result ShuffleError (Array Char)

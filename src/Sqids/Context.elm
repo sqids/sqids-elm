@@ -231,19 +231,13 @@ build { alphabet, minLength, blockList } =
         in
         findInvalidChar Set.empty chars
             |> Result.andThen (\() -> isValidBlockList blockList)
-            |> Result.andThen
+            |> Result.map
                 (\() ->
-                    case chars |> Array.fromList |> Shuffle.charArray of
-                        Err _ ->
-                            Debug.todo "Invalid shuffle algorithm"
-
-                        Ok shuffled ->
-                            { alphabet = shuffled
-                            , minLength = minLength
-                            , blockList = filteredBlockList chars blockList
-                            }
-                                |> Context
-                                |> Ok
+                    { alphabet = chars |> Array.fromList |> Shuffle.charArray
+                    , minLength = minLength
+                    , blockList = filteredBlockList chars blockList
+                    }
+                        |> Context
                 )
 
 

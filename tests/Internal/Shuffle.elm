@@ -50,4 +50,4 @@ test title input output =
     Test.test title <|
         \() ->
             Shuffle.string input
-                |> Expect.equal (Ok output)
+                |> Expect.equal output
