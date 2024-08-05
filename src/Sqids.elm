@@ -174,7 +174,7 @@ decodeWithAlphabetHelper reversedIdNumbers idString alphabet =
             in
             decodeWithAlphabetHelper (number :: reversedIdNumbers)
                 (String.dropLeft (String.length chunk + 1) idString)
-                (Shuffle.charArray alphabet)
+                (Shuffle.shuffle alphabet)
 
 
 toNumber : List Char -> Array Char -> Int
@@ -309,7 +309,7 @@ encodeNumbers context increment numbers =
                         in
                         if index < (List.length numbers - 1) then
                             { id = String.fromChar separator :: id_ :: last.id
-                            , alphabet = Shuffle.charArray last.alphabet
+                            , alphabet = Shuffle.shuffle last.alphabet
                             }
 
                         else
@@ -444,7 +444,7 @@ padIdIfNeeded minLength alphabet id =
                 else
                     let
                         shuffled =
-                            Shuffle.charArray abc
+                            Shuffle.shuffle abc
 
                         nextId : List String
                         nextId =

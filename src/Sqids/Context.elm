@@ -233,7 +233,7 @@ build { alphabet, minLength, blockList } =
             |> Result.andThen (\() -> isValidBlockList blockList)
             |> Result.map
                 (\() ->
-                    { alphabet = chars |> Array.fromList |> Shuffle.charArray
+                    { alphabet = chars |> Array.fromList |> Shuffle.shuffle
                     , minLength = minLength
                     , blockList = filteredBlockList chars blockList
                     }

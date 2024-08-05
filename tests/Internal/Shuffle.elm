@@ -53,7 +53,7 @@ test title input output =
             input
                 |> String.toList
                 |> Array.fromList
-                |> Shuffle.charArray
+                |> Shuffle.shuffle
                 |> Array.toList
                 |> String.fromList
                 |> Expect.equal output

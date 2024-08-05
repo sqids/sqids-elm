@@ -1,4 +1,4 @@
-module Shuffle exposing (charArray)
+module Shuffle exposing (shuffle)
 
 import Array exposing (Array)
 
@@ -18,8 +18,8 @@ From <https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974e
     }
 
 -}
-charArray : Array Char -> Array Char
-charArray input =
+shuffle : Array Char -> Array Char
+shuffle input =
     let
         length =
             Array.length input
