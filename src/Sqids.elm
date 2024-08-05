@@ -11,12 +11,11 @@ module Sqids exposing
 
 import Array exposing (Array)
 import Array.Extra
-import Defaults exposing (Context)
 import List.Extra
 import Result.Extra
 import Set exposing (Set)
 import Shuffle
-import Sqids.Context
+import Sqids.Context exposing (Context)
 
 
 type EncodeError
@@ -43,7 +42,7 @@ errToString error =
 
 decode : String -> List Int
 decode =
-    decodeWith Defaults.context
+    decodeWith Sqids.Context.default
 
 
 {-| Decodes an ID back into an array of unsigned integers
@@ -185,7 +184,7 @@ findIndexInArray a array =
 
 encodeList : List Int -> Result EncodeError String
 encodeList =
-    encodeListWith Defaults.context
+    encodeListWith Sqids.Context.default
 
 
 encodeListWith : Context -> List Int -> Result EncodeError String

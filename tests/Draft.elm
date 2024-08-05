@@ -1,13 +1,12 @@
 module Draft exposing (..)
 
 import Array
-import Defaults exposing (Context)
 import Expect
 import Fuzz
 import Helpers exposing (testFn)
 import Result.Extra
 import Sqids
-import Sqids.Context
+import Sqids.Context exposing (Context)
 import Test exposing (Test, describe)
 
 
