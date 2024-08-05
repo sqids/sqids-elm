@@ -1,20 +1,54 @@
 module Sqids.Context exposing
     ( Context
-    , Error(..)
-    , build
-    , containsBlockedWord
-    , default
-    , defaultAlphabet
-    , defaultBlockList
-    , errorToString
-    , from
-    , getAlphabet
-    , getMinLength
-    , new
-    , withAlphabet
-    , withBlockList
-    , withMinLength
+    , default, from, ContextBuilder
+    , defaultAlphabet, defaultBlockList
+    , new, withAlphabet, withMinLength, withBlockList, build
+    , Error(..), errorToString
+    , getAlphabet, getMinLength, containsBlockedWord
     )
+
+{-| The context contains the chosen base alphabet, the minimum length of all generated ids, and a list of blocked words.
+
+@docs Context
+
+
+# Creating a new context
+
+@docs default, from, ContextBuilder
+
+Useful for this could be the
+
+@docs defaultAlphabet, defaultBlockList
+
+An alternative to passing all values would be the builder pattern, where you only pass values that you want to override.
+
+
+## Building a new context
+
+You start with [new](#new), and only need to change the default values that you want.
+In the end you [build](#build) the [Context](#Context), which might return an [Error](#Error).
+
+Fore example:
+
+    Sqids.Context.new
+        |> Sqids.Context.withAlphabet "abc123"
+        |> Sqids.Context.withMinLength 1
+        |> Sqids.Context.withBlockList [ "block", "disallowed" ]
+        |> Sqids.Context.build
+
+@docs new, withAlphabet, withMinLength, withBlockList, build
+
+
+## Context creation errors
+
+@docs Error, errorToString
+
+
+# To retrieve information from a [Context](#Context)
+
+@docs getAlphabet, getMinLength, containsBlockedWord
+
+-}
 
 import Array exposing (Array)
 import Set exposing (Set)
@@ -22,6 +56,11 @@ import Shuffle
 import Sqids.BlockList
 
 
+{-| The context contains
+the chosen [alphabet](#getAlphabet),
+the [minimum length](#getMinLength) of all generated ids,
+and a list of [blocked words](#containsBlockedWord).
+-}
 type Context
     = Context
         { alphabet : Array Char
@@ -30,6 +69,22 @@ type Context
         }
 
 
+{-| Same [Context](#Context) as created from
+
+    Sqids.Context.from
+        { alphabet = Sqids.Context.defaultAlphabet
+        , minLength = 0
+        , blockList = Sqids.Context.defaultBlockList
+        }
+
+or built with
+
+    Sqids.Context.new
+        |> Sqids.Context.build
+
+but without the need to handle a [Error](#Error) case.
+
+-}
 default : Context
 default =
     -- shuffled default alphabet
@@ -40,30 +95,36 @@ default =
         |> Context
 
 
+{-| abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+-}
 defaultAlphabet : String
 defaultAlphabet =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 
+{-| Re-exports [Sqids.BlockList.default](./Sqids-BlockList#default) for convenience.
+-}
 defaultBlockList : List String
 defaultBlockList =
     Sqids.BlockList.default
 
 
+{-| Returns the chosen alphabet
+-}
 getAlphabet : Context -> Array Char
 getAlphabet (Context { alphabet }) =
     alphabet
 
 
+{-| Returns the minimum length of every generated id.
+-}
 getMinLength : Context -> Int
 getMinLength (Context { minLength }) =
     minLength
 
 
-{-| Construct a Context by passing all options.
-
-Alternative to using the builder pattern starting `new`.
-
+{-| Construct a Context by passing all options, might return an [Error](#Error).
+Alternative to using [the builder pattern](#building-a-new-context).
 -}
 from : ContextBuilder -> Result Error Context
 from { alphabet, minLength, blockList } =
@@ -78,6 +139,8 @@ from { alphabet, minLength, blockList } =
 -- BUILDER
 
 
+{-| Used to construct or build a [Context](#Context)
+-}
 type alias ContextBuilder =
     { alphabet : String
     , minLength : Int
@@ -85,29 +148,39 @@ type alias ContextBuilder =
     }
 
 
+{-| Starts with the default values for alphabet, minimum length and block list.
+-}
 new : ContextBuilder
 new =
     { alphabet = defaultAlphabet
     , minLength = 0
-    , blockList = []
+    , blockList = defaultBlockList
     }
 
 
+{-| Replaces the alphabet.
+-}
 withAlphabet : String -> ContextBuilder -> ContextBuilder
 withAlphabet alphabet builder =
     { builder | alphabet = alphabet }
 
 
+{-| Sets the desired minimum length of every generated id.
+-}
 withMinLength : Int -> ContextBuilder -> ContextBuilder
 withMinLength length builder =
     { builder | minLength = length }
 
 
+{-| Sets the list of blocked strings that must not occur in a generated id.
+-}
 withBlockList : List String -> ContextBuilder -> ContextBuilder
 withBlockList blockList builder =
     { builder | blockList = blockList }
 
 
+{-| Creating or building a new context might fail with an error if invalid configuration parameters are passed.
+-}
 type Error
     = AlphabetTooShort
     | AlphabetContainsMultibyteChar Char
@@ -117,6 +190,8 @@ type Error
     | BlockedWordMustBeLowercase String
 
 
+{-| For user feedback, you can generate description texts yourself, or use these English descriptions
+-}
 errorToString : Error -> String
 errorToString err =
     case err of
@@ -139,6 +214,8 @@ errorToString err =
             "Each word in the block list must only use lower cased characters, but '" ++ str ++ "' does not"
 
 
+{-| Verifies that all passed configuration options are valid, and returns either an [Error](#Error) or a valid [Context](#Context).
+-}
 build : ContextBuilder -> Result Error Context
 build { alphabet, minLength, blockList } =
     if minLength < 0 || minLength > 255 then
@@ -226,6 +303,11 @@ filteredBlockList alphabet =
     List.filter (\word -> List.all (\char -> Set.member char abc) (String.toList word))
 
 
+{-| Checks if the given string contains a word on the block list.
+
+Note: The string is converted to lower case.
+
+-}
 containsBlockedWord : Context -> String -> Bool
 containsBlockedWord (Context { blockList }) id =
     isBlocked (String.toLower id) blockList
