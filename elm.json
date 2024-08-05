@@ -19,6 +19,11 @@
             "elm/virtual-dom": "1.0.3"
         }
     },
+    "exposed-modules": [
+        "Sqids",
+        "Sqids.BlockList",
+        "Sqids.Context"
+    ],
     "test-dependencies": {
         "direct": {
             "elm-explorations/test": "2.1.1"
