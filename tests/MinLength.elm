@@ -95,7 +95,6 @@ minLengths =
                         String.length id
                             |> Expect.atLeast minLength
                 , Helpers.testFn (Sqids.decodeWith context) id numbers
-                    |> Test.skip
                 ]
     in
     describe "min lengths" <|

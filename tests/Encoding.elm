@@ -4,6 +4,7 @@ module Encoding exposing (..)
 -}
 
 import Expect
+import Fuzz
 import Helpers exposing (testFn)
 import Sqids
 import Sqids.Context
@@ -21,11 +22,7 @@ differentInputs : Test
 differentInputs =
     Helpers.testRoundTrip "different inputs"
         Sqids.Context.default
-        -- [ 0, 0, 0, 1, 2, 3, 100, 1000, 100000, 1000000]--, Sqids.maxSafeInt ]
-        -- [ Sqids.maxSafeInt ]
-        [ 900719925427 ]
-        -- faulty encoding, ts has different values
-        |> Test.skip
+        [ 0, 0, 0, 1, 2, 3, 100, 1000, 100000, 1000000, Sqids.maxSafeInt ]
 
 
 incrementalNumbers : Test

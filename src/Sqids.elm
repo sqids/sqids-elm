@@ -397,7 +397,10 @@ toId num alphabet =
                     arrayGetInBounds (lastResult |> modBy charsLength) alphabet :: lastId
 
                 nextResult =
-                    lastResult // charsLength
+                    -- Cannot use integer division `//` because Elm clamps it to 32 bit, see https://github.com/elm/core/issues/1003
+                    toFloat lastResult
+                        / toFloat charsLength
+                        |> floor
             in
             if nextResult > 0 then
                 rec nextResult nextId
