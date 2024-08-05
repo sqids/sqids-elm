@@ -1,13 +1,21 @@
 module Sqids exposing
-    ( EncodeError(..)
-    , decode
-    , decodeWith
-    , encodeList
-    , encodeListWith
-    , errToString
-    , maxSafeInt
-    , toId
+    ( encode, encodeWith, EncodeError(..), encodeErrorToString, maxSafeInt
+    , decode, decodeWith
     )
+
+{-|
+
+
+# Encode
+
+@docs encode, encodeWith, EncodeError, encodeErrorToString, maxSafeInt
+
+
+# Decode
+
+@docs decode, decodeWith
+
+-}
 
 import Array exposing (Array)
 import Array.Extra
@@ -18,17 +26,23 @@ import Shuffle
 import Sqids.Context exposing (Context)
 
 
+{-| Possible Error cases when trying to encode integer numbers.
+
+If you want to show these errors to the user, you can use the [encodeErrorToString](#encodeErrorToString) helper.
+
+-}
 type EncodeError
     = NegativeNumber Int
     | TooHighInteger Int
     | MaxRegenerateAttempts
 
 
-{-| These texts are taken from
-<https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts>
+{-| For user feedback, you can generate description texts yourself, or use these English descriptions
 -}
-errToString : EncodeError -> String
-errToString error =
+encodeErrorToString : EncodeError -> String
+encodeErrorToString error =
+    -- These texts are taken from
+    -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts
     case error of
         NegativeNumber _ ->
             "Encoding supports numbers between 0 and " ++ String.fromInt maxSafeInt
@@ -40,20 +54,24 @@ errToString error =
             "Reached max attempts to re-generate the ID"
 
 
+{-| Decodes an ID back into a list of unsigned integer numbers using the [default Context](./Sqids-Context#default).
+-}
 decode : String -> List Int
 decode =
     decodeWith Sqids.Context.default
 
 
-{-| Decodes an ID back into an array of unsigned integers
-These are the cases where the return value might be an empty array:
+{-| Decodes an ID back into a list of unsigned integer numbers.
 
-  - Empty ID / empty string
-  - Non-alphabet character is found within ID
+The list might be empty if
+
+  - an empty string is passed
+  - the string contains a character that is not part of the alphabet
 
 -}
 decodeWith : Context -> String -> List Int
 decodeWith context id =
+    -- TODO add variant that returns an error
     case String.uncons id of
         Nothing ->
             -- string is empty, return an empty list
@@ -182,13 +200,17 @@ findIndexInArray a array =
         |> Maybe.withDefault -1
 
 
-encodeList : List Int -> Result EncodeError String
-encodeList =
-    encodeListWith Sqids.Context.default
+{-| Encodes a list of unsigned integer numbers into a string using the [default Context](./Sqids-Context#default).
+-}
+encode : List Int -> Result EncodeError String
+encode =
+    encodeWith Sqids.Context.default
 
 
-encodeListWith : Context -> List Int -> Result EncodeError String
-encodeListWith context values =
+{-| Encodes a list of unsigned integer numbers into a string
+-}
+encodeWith : Context -> List Int -> Result EncodeError String
+encodeWith context values =
     if values == [] then
         Ok ""
 
@@ -218,6 +240,9 @@ validInput list =
                 validInput rest
 
 
+{-| The maximum safe integer in JavaScript (and Elm) is 9007199254740991 (2^53 – 1).
+See <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER>
+-}
 maxSafeInt : Int
 maxSafeInt =
     -- 2^53 - 1 (`Number.MAX_SAFE_INTEGER` in JS)
@@ -247,14 +272,12 @@ encodeNumbers context increment numbers =
                 generateOffsetFromInputs initialAlphabet numbers
                     + increment
                     |> modBy alphabetLength
-                    |> Debug.log "offset"
 
             --  re-arrange alphabet so that second-half goes in front of the first-half
             reorderedAlphabet : Array Char
             reorderedAlphabet =
                 Array.append (Array.slice offset alphabetLength initialAlphabet)
                     (Array.slice 0 offset initialAlphabet)
-                    |> Debug.log "reordered alphabet"
 
             -- `prefix` is the first character in the generated ID, used for randomization
             prefix : Char
@@ -265,8 +288,6 @@ encodeNumbers context increment numbers =
             reversedAlphabet : Array Char
             reversedAlphabet =
                 Array.Extra.reverse reorderedAlphabet
-                    |> Debug.log "reversed alphabet"
-
 
             id : String
             id =
@@ -274,9 +295,6 @@ encodeNumbers context increment numbers =
                     func : Int -> Int -> { alphabet : Array Char, id : List String } -> { alphabet : Array Char, id : List String }
                     func index num last =
                         let
-                            _ =
-                                Debug.log ("step " ++ String.fromInt index) { num = num, last = last }
-
                             alphabetWithoutSeparator : Array Char
                             alphabetWithoutSeparator =
                                 Array.slice 1 alphabetLength last.alphabet
@@ -302,14 +320,6 @@ encodeNumbers context increment numbers =
                 List.Extra.indexedFoldl func { alphabet = reversedAlphabet, id = [ String.fromChar prefix ] } numbers
                     |> padId (Sqids.Context.getMinLength context)
         in
-        -- TODO handle blocked words
-        -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts#L165-L168
-        {-
-           // if ID has a blocked word anywhere, restart with a +1 increment
-           if (this.isBlockedId(id)) {
-               id = this.encodeNumbers(numbers, increment + 1);
-           }
-        -}
         if Sqids.Context.containsBlockedWord context id then
             encodeNumbers context (increment + 1) numbers
 
@@ -426,9 +436,7 @@ padIdIfNeeded minLength alphabet id =
             rec abc currentId =
                 let
                     diff =
-                        minLength
-                            - List.length currentId
-                            |> Debug.log "diff"
+                        minLength - List.length currentId
                 in
                 if diff < 1 then
                     currentId

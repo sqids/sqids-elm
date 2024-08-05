@@ -15,7 +15,7 @@ defaultBlockList : Test
 defaultBlockList =
     describe "if no custom blocklist param, use the default blocklist"
         [ Helpers.testFn Sqids.decode "aho1e" [ 4572721 ]
-        , Helpers.testFn Sqids.encodeList [ 4572721 ] (Ok "JExTR")
+        , Helpers.testFn Sqids.encode [ 4572721 ] (Ok "JExTR")
         ]
 
 
@@ -43,7 +43,7 @@ singleBlockedWord =
             ]
         , describe "uses the passed blocklist"
             [ Helpers.testFn (Sqids.decodeWith context) "ArUO" [ 100000 ]
-            , Helpers.testFn (Sqids.encodeListWith context) [ 100000 ] (Ok "QyG4")
+            , Helpers.testFn (Sqids.encodeWith context) [ 100000 ] (Ok "QyG4")
             , Helpers.testFn (Sqids.decodeWith context) "QyG4" [ 100000 ]
             ]
         ]
@@ -109,12 +109,12 @@ matchToBlockListAsLowerCase =
     in
     describe "blocklist filtering in constructor"
         [ Helpers.testFn
-            (Sqids.encodeListWith (blocks []))
+            (Sqids.encodeWith (blocks []))
             numbers
             (Ok "SXNZKL")
         , Helpers.testFn
             -- lowercase blocklist in only-uppercase alphabet
-            (Sqids.encodeListWith (blocks [ "sxnzkl" ]))
+            (Sqids.encodeWith (blocks [ "sxnzkl" ]))
             numbers
             (Ok "IBSHOZ")
         ]
@@ -132,7 +132,7 @@ maxRegenerateAttempts =
                     }
                         |> build
             in
-            Sqids.encodeListWith context [ 0 ]
+            Sqids.encodeWith context [ 0 ]
                 |> Expect.equal (Err Sqids.MaxRegenerateAttempts)
 
 

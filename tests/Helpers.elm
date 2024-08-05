@@ -29,7 +29,7 @@ testEncoderAndDecoder =
 testEncoderAndDecoderWith : Context -> List Int -> String -> Test
 testEncoderAndDecoderWith context numbers id =
     describe (Debug.toString numbers ++ " <-> " ++ id)
-        [ testFn (Sqids.encodeListWith context) numbers (Ok id)
+        [ testFn (Sqids.encodeWith context) numbers (Ok id)
         , testFn (Sqids.decodeWith context) id numbers
         ]
 
@@ -38,7 +38,9 @@ testRoundTrip : String -> Context -> List Int -> Test
 testRoundTrip title context numbers =
     Test.test title <|
         \() ->
-            Sqids.encodeListWith context numbers
+            Sqids.encodeWith context numbers
+                -- |> Debug.log "encoded"
                 |> Result.Extra.extract (Debug.todo << Debug.toString)
                 |> Sqids.decodeWith context
+                -- |> Debug.log "decoded"
                 |> Expect.equal numbers

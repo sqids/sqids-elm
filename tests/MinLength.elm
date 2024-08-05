@@ -88,7 +88,7 @@ minLengths =
 
                 id : String
                 id =
-                    Sqids.encodeListWith context numbers
+                    Sqids.encodeWith context numbers
                         |> Result.Extra.extract (Debug.todo << Debug.toString)
             in
             describe ("encoding and decoding numbers" ++ Debug.toString numbers)

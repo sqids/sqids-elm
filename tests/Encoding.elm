@@ -88,7 +88,7 @@ multiInput =
 encodingNoNumbers : Test
 encodingNoNumbers =
     Test.test "encoding no numbers" <|
-        \() -> Sqids.encodeList [] |> Expect.equal (Ok "")
+        \() -> Sqids.encode [] |> Expect.equal (Ok "")
 
 
 decodingEmptyString : Test
@@ -106,10 +106,10 @@ decodeCharacterNotInAlphabet =
 encodeOutOfRange : Test
 encodeOutOfRange =
     describe "encode out-of-range numbers"
-        [ testFn Sqids.encodeList
+        [ testFn Sqids.encode
             [ -1 ]
             (Err (Sqids.NegativeNumber -1))
-        , testFn Sqids.encodeList
+        , testFn Sqids.encode
             [ Sqids.maxSafeInt + 1 ]
             (Err (Sqids.TooHighInteger (Sqids.maxSafeInt + 1)))
         ]

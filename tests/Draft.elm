@@ -1,6 +1,5 @@
 module Draft exposing (..)
 
-import Array
 import Expect
 import Fuzz
 import Helpers exposing (testFn)
@@ -14,7 +13,7 @@ abc : Test
 abc =
     let
         encodes =
-            testFn <| Sqids.encodeListWith abcContext
+            testFn <| Sqids.encodeWith abcContext
     in
     describe "Encode with short alphabet 'abc'"
         [ encodes [ 0 ] (Ok "ca")
@@ -35,8 +34,8 @@ abcContext =
 defaultAlphabet : Test
 defaultAlphabet =
     describe "Encode with default alphabet"
-        [ testFn Sqids.encodeList [ 0 ] (Ok "bM")
-        , testFn Sqids.encodeList [ 0, 1, 2 ] (Ok "rSCtlB")
+        [ testFn Sqids.encode [ 0 ] (Ok "bM")
+        , testFn Sqids.encode [ 0, 1, 2 ] (Ok "rSCtlB")
         ]
 
 
@@ -44,16 +43,7 @@ testEncodeWithTitle : String -> List Int -> Result Sqids.EncodeError String -> T
 testEncodeWithTitle title input expected =
     Test.test title <|
         \() ->
-            Sqids.encodeList input |> Expect.equal expected
-
-
-testToId : Test
-testToId =
-    [ Sqids.toId 1 (Array.fromList [ 'a', 'b', 'c' ]) |> Expect.equal "b"
-    , Sqids.toId 13 ("abcde" |> String.toList |> Array.fromList) |> Expect.equal "cd"
-    ]
-        |> List.indexedMap (\index expectation -> Test.test (String.fromInt index ++ ":") <| \() -> expectation)
-        |> Test.concat
+            Sqids.encode input |> Expect.equal expected
 
 
 singleIntFuzz : Test
@@ -71,9 +61,7 @@ singleIntFuzz =
                 numbers =
                     [ int ]
             in
-            Sqids.encodeListWith context numbers
-                |> Debug.log "encoded"
+            Sqids.encodeWith context numbers
                 |> Result.Extra.extract (Debug.todo << Debug.toString)
                 |> Sqids.decodeWith context
-                |> Debug.log "decoded"
                 |> Expect.equal numbers
