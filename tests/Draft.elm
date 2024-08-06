@@ -64,4 +64,5 @@ singleIntFuzz =
             Sqids.encodeWith context numbers
                 |> Result.Extra.extract (Debug.todo << Debug.toString)
                 |> Sqids.decodeWith context
+                |> Result.withDefault []
                 |> Expect.equal numbers

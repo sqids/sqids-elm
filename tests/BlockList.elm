@@ -7,14 +7,14 @@ import Expect
 import Helpers
 import Result.Extra
 import Sqids
-import Sqids.Context exposing (Context, withBlockList)
+import Sqids.Context exposing (Context)
 import Test exposing (Test, describe)
 
 
 defaultBlockList : Test
 defaultBlockList =
     describe "if no custom blocklist param, use the default blocklist"
-        [ Helpers.testFn Sqids.decode "aho1e" [ 4572721 ]
+        [ Helpers.testFn Sqids.decode "aho1e" (Ok [ 4572721 ])
         , Helpers.testFn Sqids.encode [ 4572721 ] (Ok "JExTR")
         ]
 
@@ -42,9 +42,9 @@ singleBlockedWord =
             [ Helpers.testEncoderAndDecoderWith context [ 4572721 ] "aho1e"
             ]
         , describe "uses the passed blocklist"
-            [ Helpers.testFn (Sqids.decodeWith context) "ArUO" [ 100000 ]
+            [ Helpers.testFn (Sqids.decodeWith context) "ArUO" (Ok [ 100000 ])
             , Helpers.testFn (Sqids.encodeWith context) [ 100000 ] (Ok "QyG4")
-            , Helpers.testFn (Sqids.decodeWith context) "QyG4" [ 100000 ]
+            , Helpers.testFn (Sqids.decodeWith context) "QyG4" (Ok [ 100000 ])
             ]
         ]
 
@@ -77,7 +77,7 @@ decodeBlockedWords =
                 |> withBlockList
 
         numbers =
-            [ 1, 2, 3 ]
+            Ok [ 1, 2, 3 ]
     in
     describe "decoding blocklist words should still work"
         [ Helpers.testFn (Sqids.decodeWith context) "86Rf07" numbers

@@ -43,7 +43,7 @@ Sqids.encode [ 1, 2, 3 ]
 --> (Ok "86Rf07")
 
 Sqids.decode "86Rf07"
---> [ 1, 2, 3 ]
+--> (Ok [ 1, 2, 3 ])
 ```
 
 ## Development

@@ -4,7 +4,6 @@ module Encoding exposing (..)
 -}
 
 import Expect
-import Fuzz
 import Helpers exposing (testFn)
 import Sqids
 import Sqids.Context
@@ -94,13 +93,13 @@ encodingNoNumbers =
 decodingEmptyString : Test
 decodingEmptyString =
     Test.test "decoding empty string" <|
-        \() -> Sqids.decode "" |> Expect.equal []
+        \() -> Sqids.decode "" |> Expect.equal (Err Sqids.EmptyString)
 
 
 decodeCharacterNotInAlphabet : Test
 decodeCharacterNotInAlphabet =
     Test.test "decoding an ID with an invalid character" <|
-        \() -> Sqids.decode "*" |> Expect.equal []
+        \() -> Sqids.decode "*" |> Expect.equal (Err (Sqids.CharacterNotInAlphabet '*'))
 
 
 encodeOutOfRange : Test

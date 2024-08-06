@@ -1,6 +1,6 @@
 module Sqids exposing
     ( encode, encodeWith, EncodeError(..), encodeErrorToString, maxSafeInt
-    , decode, decodeWith
+    , decode, decodeWith, DecodeError(..), decodeErrorToString
     )
 
 {-|
@@ -13,22 +13,43 @@ module Sqids exposing
 
 # Decode
 
-@docs decode, decodeWith
+@docs decode, decodeWith, DecodeError, decodeErrorToString
 
 -}
 
 import Array exposing (Array)
 import Array.Extra
 import List.Extra
-import Result.Extra
 import Set exposing (Set)
 import Shuffle
 import Sqids.Context exposing (Context)
 
 
+{-| Possible Error cases when trying to decode a string to integer numbers.
+
+If you want to show these errors to the user, you can use the [encodeErrorToString](#encodeErrorToString) helper.
+
+-}
+type DecodeError
+    = EmptyString
+    | CharacterNotInAlphabet Char
+
+
+{-| Convenience function to simplify giving feedback to users
+-}
+decodeErrorToString : DecodeError -> String
+decodeErrorToString error =
+    case error of
+        EmptyString ->
+            "An empty string is not allowed"
+
+        CharacterNotInAlphabet char ->
+            "The character '" ++ String.fromChar char ++ "' is not in the given alphabet"
+
+
 {-| Decodes an ID back into a list of unsigned integer numbers using the [default Context](./Sqids-Context#default).
 -}
-decode : String -> List Int
+decode : String -> Result DecodeError (List Int)
 decode =
     decodeWith Sqids.Context.default
 
@@ -41,13 +62,13 @@ The list might be empty if
   - the string contains a character that is not part of the alphabet
 
 -}
-decodeWith : Context -> String -> List Int
+decodeWith : Context -> String -> Result DecodeError (List Int)
 decodeWith context id =
     -- TODO add variant that returns an error
     case String.uncons id of
         Nothing ->
             -- string is empty, return an empty list
-            []
+            Err EmptyString
 
         -- first character is always the `prefix`
         Just ( prefix_, idWithoutPrefix ) ->
@@ -94,25 +115,17 @@ decodeWith context id =
                             else
                                 Err <| CharacterNotInAlphabet first
             in
-            case
-                SearchForPrefix { prefix = prefix_, beforePrefix = [] }
-                    |> findProperAlphabet initialAlphabet
-            of
-                Ok alphabet ->
-                    decodeWithAlphabet (Array.fromList alphabet) idWithoutPrefix
-
-                Err _ ->
-                    []
+            SearchForPrefix { prefix = prefix_, beforePrefix = [] }
+                |> findProperAlphabet initialAlphabet
+                |> Result.map
+                    (\alphabet ->
+                        decodeWithAlphabet (Array.fromList alphabet) idWithoutPrefix
+                    )
 
 
 type DecodeWithLoop
     = SearchForPrefix { prefix : Char, beforePrefix : List Char }
     | ValidateAfterPrefix { chunk1 : List Char, chunk2 : List Char }
-
-
-type DecodeError
-    = EmptyString
-    | CharacterNotInAlphabet Char
 
 
 decodeWithAlphabet : Array Char -> String -> List Int
@@ -183,7 +196,7 @@ type EncodeError
     | MaxRegenerateAttempts
 
 
-{-| For user feedback, you can generate description texts yourself, or use these English descriptions
+{-| Convenience function to simplify giving feedback to users
 -}
 encodeErrorToString : EncodeError -> String
 encodeErrorToString error =
