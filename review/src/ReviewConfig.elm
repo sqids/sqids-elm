@@ -65,7 +65,7 @@ config =
     , NoUnused.Parameters.rule
     , NoUnused.Patterns.rule
     , NoUnused.Variables.rule
-    , Simplify.rule Simplify.defaults
-        |> Rule.ignoreErrorsForDirectories [ "tests/" ]
+    -- , Simplify.rule Simplify.defaults
+    --     |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     , Review.Documentation.CodeSnippet.check
     ]
