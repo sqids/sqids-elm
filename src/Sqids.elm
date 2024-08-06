@@ -26,34 +26,6 @@ import Shuffle
 import Sqids.Context exposing (Context)
 
 
-{-| Possible Error cases when trying to encode integer numbers.
-
-If you want to show these errors to the user, you can use the [encodeErrorToString](#encodeErrorToString) helper.
-
--}
-type EncodeError
-    = NegativeNumber Int
-    | TooHighInteger Int
-    | MaxRegenerateAttempts
-
-
-{-| For user feedback, you can generate description texts yourself, or use these English descriptions
--}
-encodeErrorToString : EncodeError -> String
-encodeErrorToString error =
-    -- These texts are taken from
-    -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts
-    case error of
-        NegativeNumber _ ->
-            "Encoding supports numbers between 0 and " ++ String.fromInt maxSafeInt
-
-        TooHighInteger _ ->
-            "Encoding supports numbers between 0 and " ++ String.fromInt maxSafeInt
-
-        MaxRegenerateAttempts ->
-            "Reached max attempts to re-generate the ID"
-
-
 {-| Decodes an ID back into a list of unsigned integer numbers using the [default Context](./Sqids-Context#default).
 -}
 decode : String -> List Int
@@ -198,6 +170,34 @@ findIndexInArray a array =
     in
     inner 0
         |> Maybe.withDefault -1
+
+
+{-| Possible Error cases when trying to encode integer numbers.
+
+If you want to show these errors to the user, you can use the [encodeErrorToString](#encodeErrorToString) helper.
+
+-}
+type EncodeError
+    = NegativeNumber Int
+    | TooHighInteger Int
+    | MaxRegenerateAttempts
+
+
+{-| For user feedback, you can generate description texts yourself, or use these English descriptions
+-}
+encodeErrorToString : EncodeError -> String
+encodeErrorToString error =
+    -- These texts are taken from
+    -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts
+    case error of
+        NegativeNumber _ ->
+            "Encoding supports numbers between 0 and " ++ String.fromInt maxSafeInt
+
+        TooHighInteger _ ->
+            "Encoding supports numbers between 0 and " ++ String.fromInt maxSafeInt
+
+        MaxRegenerateAttempts ->
+            "Reached max attempts to re-generate the ID"
 
 
 {-| Encodes a list of unsigned integer numbers into a string using the [default Context](./Sqids-Context#default).
