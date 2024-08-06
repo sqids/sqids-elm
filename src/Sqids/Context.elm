@@ -226,6 +226,7 @@ build { alphabet, minLength, blockList } =
 
     else
         let
+            chars : List Char
             chars =
                 alphabet |> String.toList
         in
@@ -291,6 +292,7 @@ This leaves us with the following:
 filteredBlockList : List Char -> List String -> List String
 filteredBlockList alphabet =
     let
+        abc : Set Char
         abc =
             Set.fromList <| List.map Char.toLower alphabet
     in

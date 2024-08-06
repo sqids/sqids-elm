@@ -6,12 +6,12 @@ module Sqids exposing
 {-|
 
 
-# Encode
+# Encode a list of integers into a string
 
 @docs encode, encodeWith, EncodeError, encodeErrorToString, maxSafeInt
 
 
-# Decode
+# Decode a string into a list of integers
 
 @docs decode, decodeWith, DecodeError, decodeErrorToString
 
@@ -73,6 +73,7 @@ decodeWith context id =
         -- first character is always the `prefix`
         Just ( prefix_, idWithoutPrefix ) ->
             let
+                initialAlphabet : List Char
                 initialAlphabet =
                     Sqids.Context.getAlphabet context
                         |> Array.toList
@@ -136,11 +137,12 @@ decodeWithAlphabet alphabet id =
 decodeWithAlphabetHelper : List Int -> String -> Array Char -> List Int
 decodeWithAlphabetHelper reversedIdNumbers idString alphabet =
     let
+        separator : String
         separator =
-            arrayGetInBounds 0 alphabet |> String.fromChar |> Debug.log "separator"
+            arrayGetInBounds 0 alphabet |> String.fromChar
     in
     --  we need the first part to the left of the separator to decode the number
-    case String.split separator idString |> Debug.log "chunks" of
+    case String.split separator idString of
         [] ->
             List.reverse reversedIdNumbers
 
@@ -151,9 +153,11 @@ decodeWithAlphabetHelper reversedIdNumbers idString alphabet =
         chunk :: _ ->
             -- decode the number without using the `separator` character
             let
+                alphabetWithoutSeparator : Array Char
                 alphabetWithoutSeparator =
                     Array.slice 1 (Array.length alphabet) alphabet
 
+                number : Int
                 number =
                     toNumber (String.toList chunk) alphabetWithoutSeparator
             in
@@ -170,6 +174,7 @@ toNumber id alphabet =
 findIndexInArray : a -> Array a -> Int
 findIndexInArray a array =
     let
+        inner : Int -> Maybe Int
         inner index =
             Array.get index array
                 |> Maybe.andThen
@@ -203,11 +208,11 @@ encodeErrorToString error =
     -- These texts are taken from
     -- https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974efa9fba6/src/index.ts
     case error of
-        NegativeNumber _ ->
-            "Encoding supports numbers between 0 and " ++ String.fromInt maxSafeInt
+        NegativeNumber number ->
+            "Encoding supports numbers between 0 and " ++ String.fromInt maxSafeInt ++ ", but " ++ String.fromInt number ++ " was given"
 
-        TooHighInteger _ ->
-            "Encoding supports numbers between 0 and " ++ String.fromInt maxSafeInt
+        TooHighInteger number ->
+            "Encoding supports numbers between 0 and " ++ String.fromInt maxSafeInt ++ ", but " ++ String.fromInt number ++ " was given"
 
         MaxRegenerateAttempts ->
             "Reached max attempts to re-generate the ID"
@@ -279,32 +284,32 @@ encodeNumbers context increment numbers =
 
     else
         let
-            -- get a semi-random offset from input numbers
-            offset : Int
-            offset =
-                generateOffsetFromInputs initialAlphabet numbers
-                    + increment
-                    |> modBy alphabetLength
-
-            --  re-arrange alphabet so that second-half goes in front of the first-half
-            reorderedAlphabet : Array Char
-            reorderedAlphabet =
-                Array.append (Array.slice offset alphabetLength initialAlphabet)
-                    (Array.slice 0 offset initialAlphabet)
-
-            -- `prefix` is the first character in the generated ID, used for randomization
-            prefix : Char
-            prefix =
-                arrayGetInBounds 0 reorderedAlphabet
-
-            -- reverse alphabet (otherwise for [0, x] `offset` and `separator` will be the same char)
-            reversedAlphabet : Array Char
-            reversedAlphabet =
-                Array.Extra.reverse reorderedAlphabet
-
             id : String
             id =
                 let
+                    offset : Int
+                    offset =
+                        -- get a semi-random offset from input numbers
+                        generateOffsetFromInputs initialAlphabet numbers
+                            + increment
+                            |> modBy alphabetLength
+
+                    reorderedAlphabet : Array Char
+                    reorderedAlphabet =
+                        --  re-arrange alphabet so that second-half goes in front of the first-half
+                        Array.append (Array.slice offset alphabetLength initialAlphabet)
+                            (Array.slice 0 offset initialAlphabet)
+
+                    prefix : Char
+                    prefix =
+                        -- `prefix` is the first character in the generated ID, used for randomization
+                        arrayGetInBounds 0 reorderedAlphabet
+
+                    reversedAlphabet : Array Char
+                    reversedAlphabet =
+                        -- reverse alphabet (otherwise for [0, x] `offset` and `separator` will be the same char)
+                        Array.Extra.reverse reorderedAlphabet
+
                     func : Int -> Int -> { alphabet : Array Char, id : List String } -> { alphabet : Array Char, id : List String }
                     func index num last =
                         let
@@ -312,15 +317,16 @@ encodeNumbers context increment numbers =
                             alphabetWithoutSeparator =
                                 Array.slice 1 alphabetLength last.alphabet
 
-                            separator : Char
-                            separator =
-                                arrayGetInBounds 0 last.alphabet
-
                             id_ : String
                             id_ =
                                 toId num alphabetWithoutSeparator
                         in
                         if index < (List.length numbers - 1) then
+                            let
+                                separator : Char
+                                separator =
+                                    arrayGetInBounds 0 last.alphabet
+                            in
                             { id = String.fromChar separator :: id_ :: last.id
                             , alphabet = Shuffle.shuffle last.alphabet
                             }
@@ -355,6 +361,7 @@ encodeNumbers context increment numbers =
 generateOffsetFromInputs : Array Char -> List Int -> Int
 generateOffsetFromInputs alphabet numbers =
     let
+        alphabetLength : Int
         alphabetLength =
             Array.length alphabet
     in
@@ -393,15 +400,18 @@ toId : Int -> Array Char -> String
 toId num alphabet =
     -- TODO don't expose this function in package
     let
+        charsLength : Int
         charsLength =
             Array.length alphabet
 
         rec : Int -> List Char -> List Char
         rec lastResult lastId =
             let
+                nextId : List Char
                 nextId =
                     arrayGetInBounds (lastResult |> modBy charsLength) alphabet :: lastId
 
+                nextResult : Int
                 nextResult =
                     -- Cannot use integer division `//` because Elm clamps it to 32 bit, see https://github.com/elm/core/issues/1003
                     toFloat lastResult
@@ -430,7 +440,7 @@ padId : Int -> { alphabet : Array Char, id : List String } -> String
 padId minLength { alphabet, id } =
     padIdIfNeeded minLength alphabet id
         |> List.reverse
-        |> String.join ""
+        |> String.concat
 
 
 padIdIfNeeded : Int -> Array Char -> List String -> List String
@@ -448,6 +458,7 @@ padIdIfNeeded minLength alphabet id =
             rec : Array Char -> List String -> List String
             rec abc currentId =
                 let
+                    diff : Int
                     diff =
                         minLength - List.length currentId
                 in

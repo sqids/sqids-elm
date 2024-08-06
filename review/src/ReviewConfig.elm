@@ -65,7 +65,8 @@ config =
     , NoUnused.Parameters.rule
     , NoUnused.Patterns.rule
     , NoUnused.Variables.rule
-    -- , Simplify.rule Simplify.defaults
-    --     |> Rule.ignoreErrorsForDirectories [ "tests/" ]
-    , Review.Documentation.CodeSnippet.check
+    , Simplify.rule Simplify.defaults
+         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     ]
+        |> List.map (Rule.ignoreErrorsForFiles [ "tests/DocumentationCodeSnippetTest.elm" ])
+        |> (::) Review.Documentation.CodeSnippet.check

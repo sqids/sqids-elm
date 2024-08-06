@@ -21,19 +21,16 @@ From <https://github.com/sqids/sqids-spec/blob/40f407169fa0f555b93a197ff0a9e974e
 shuffle : Array Char -> Array Char
 shuffle input =
     let
+        length : Int
         length =
             Array.length input
     in
     shuf 0 (length - 1) length input
-        -- trusting the algorithm and ignoring out-of-bounds array access errors
-        |> Result.withDefault Array.empty
 
 
-type ShuffleError
-    = CharDoesNotExist Int (Array Char)
-
-
-shuf : Int -> Int -> Int -> Array Char -> Result ShuffleError (Array Char)
+{-| Trusting the algorithm and ignoring out-of-bounds array access errors
+-}
+shuf : Int -> Int -> Int -> Array Char -> Array Char
 shuf i j length chars =
     case
         ( Array.get i chars |> Maybe.map Char.toCode
@@ -42,6 +39,7 @@ shuf i j length chars =
     of
         ( Just iCharCode, Just jCharCode ) ->
             let
+                r : Int
                 r =
                     (i * j + iCharCode + jCharCode)
                         |> modBy length
@@ -49,6 +47,7 @@ shuf i j length chars =
             case Array.get r chars of
                 Just rChar ->
                     let
+                        arr : Array Char
                         arr =
                             Array.set i rChar chars
                                 |> Array.set r (Char.fromCode iCharCode)
@@ -57,13 +56,13 @@ shuf i j length chars =
                         shuf (i + 1) (j - 1) length arr
 
                     else
-                        Ok arr
+                        arr
 
                 Nothing ->
-                    CharDoesNotExist r chars |> Err
+                    Array.empty
 
         ( Nothing, _ ) ->
-            CharDoesNotExist i chars |> Err
+            Array.empty
 
         ( _, Nothing ) ->
-            CharDoesNotExist j chars |> Err
+            Array.empty

@@ -22,6 +22,7 @@ defaultBlockList =
 emptyBlockList : Test
 emptyBlockList =
     let
+        context : Context
         context =
             withBlockList []
     in
@@ -33,6 +34,7 @@ emptyBlockList =
 singleBlockedWord : Test
 singleBlockedWord =
     let
+        context : Context
         context =
             -- originally encoded [100000]
             [ "ArUO" ] |> withBlockList
@@ -52,6 +54,7 @@ singleBlockedWord =
 blockList : Test
 blockList =
     let
+        context : Context
         context =
             [ -- normal result of 1st encoding, let's block that word on purpose
               "JSwXFaosAN"
@@ -72,10 +75,12 @@ blockList =
 decodeBlockedWords : Test
 decodeBlockedWords =
     let
+        context : Context
         context =
             [ "86Rf07", "se8ojk", "ARsz1p", "Q8AI49", "5sQRZO" ]
                 |> withBlockList
 
+        numbers : Result error (List number)
         numbers =
             Ok [ 1, 2, 3 ]
     in
@@ -98,12 +103,14 @@ matchShortBlockedWord =
 matchToBlockListAsLowerCase : Test
 matchToBlockListAsLowerCase =
     let
+        blocks : List String -> Context
         blocks words =
             Sqids.Context.new
                 |> Sqids.Context.withAlphabet "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                 |> Sqids.Context.withBlockList words
                 |> build
 
+        numbers : List number
         numbers =
             [ 1, 2, 3 ]
     in
@@ -125,6 +132,7 @@ maxRegenerateAttempts =
     Test.test "max encoding attempts" <|
         \() ->
             let
+                context : Context
                 context =
                     { alphabet = "abc"
                     , minLength = 3

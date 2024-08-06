@@ -12,6 +12,7 @@ import Test exposing (Test, describe)
 abc : Test
 abc =
     let
+        encodes : List Int -> Result Sqids.EncodeError String -> Test
         encodes =
             testFn <| Sqids.encodeWith abcContext
     in
@@ -39,18 +40,12 @@ defaultAlphabet =
         ]
 
 
-testEncodeWithTitle : String -> List Int -> Result Sqids.EncodeError String -> Test
-testEncodeWithTitle title input expected =
-    Test.test title <|
-        \() ->
-            Sqids.encode input |> Expect.equal expected
-
-
 singleIntFuzz : Test
 singleIntFuzz =
     Test.fuzz (Fuzz.intAtLeast 0) "roundtrip tests" <|
         \int ->
             let
+                context : Context
                 context =
                     Sqids.Context.new
                         -- fuzzing tests with the block list is very slow
@@ -58,6 +53,7 @@ singleIntFuzz =
                         |> Sqids.Context.build
                         |> Result.Extra.extract (Debug.todo << Debug.toString)
 
+                numbers : List Int
                 numbers =
                     [ int ]
             in

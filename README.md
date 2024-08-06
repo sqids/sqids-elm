@@ -66,4 +66,4 @@ npx elm-test-rs --watch
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/sqids/sqids-elm/blob/main/LICENSE)
