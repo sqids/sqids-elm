@@ -443,6 +443,7 @@ padIdIfNeeded minLength alphabet id =
 
                 else
                     let
+                        shuffled : Array Char
                         shuffled =
                             Shuffle.shuffle abc
 
