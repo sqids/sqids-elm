@@ -1,9 +1,8 @@
 # CHANGELOG
 
-## TODO 
+## TODO
 
 - Fix all elm-review issues
-- Write comment in https://github.com/sqids/sqids-elm/issues/1
 
 ## Unreleased
 
