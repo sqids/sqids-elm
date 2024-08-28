@@ -18,8 +18,6 @@ module Sqids exposing
 -}
 
 import Array exposing (Array)
-import Array.Extra
-import List.Extra
 import Set exposing (Set)
 import Shuffle
 import Sqids.Context exposing (Context)
@@ -308,35 +306,37 @@ encodeNumbers context increment numbers =
                     reversedAlphabet : Array Char
                     reversedAlphabet =
                         -- reverse alphabet (otherwise for [0, x] `offset` and `separator` will be the same char)
-                        Array.Extra.reverse reorderedAlphabet
+                        reverseArray reorderedAlphabet
 
-                    func : Int -> Int -> { alphabet : Array Char, id : List String } -> { alphabet : Array Char, id : List String }
-                    func index num last =
+                    reduce : { alphabet : Array Char, id : List String } -> List Int -> { alphabet : Array Char, id : List String }
+                    reduce acc list =
                         let
                             alphabetWithoutSeparator : Array Char
                             alphabetWithoutSeparator =
-                                Array.slice 1 alphabetLength last.alphabet
-
-                            id_ : String
-                            id_ =
-                                toId num alphabetWithoutSeparator
+                                Array.slice 1 alphabetLength acc.alphabet
                         in
-                        if index < (List.length numbers - 1) then
-                            let
-                                separator : Char
-                                separator =
-                                    arrayGetInBounds 0 last.alphabet
-                            in
-                            { id = String.fromChar separator :: id_ :: last.id
-                            , alphabet = Shuffle.shuffle last.alphabet
-                            }
+                        case list of
+                            [] ->
+                                acc
 
-                        else
-                            { id = id_ :: last.id
-                            , alphabet = last.alphabet
-                            }
+                            [ last ] ->
+                                { id = toId last alphabetWithoutSeparator :: acc.id
+                                , alphabet = acc.alphabet
+                                }
+
+                            first :: rest ->
+                                let
+                                    separator : Char
+                                    separator =
+                                        arrayGetInBounds 0 acc.alphabet
+                                in
+                                reduce
+                                    { id = String.fromChar separator :: toId first alphabetWithoutSeparator :: acc.id
+                                    , alphabet = Shuffle.shuffle acc.alphabet
+                                    }
+                                    rest
                 in
-                List.Extra.indexedFoldl func { alphabet = reversedAlphabet, id = [ String.fromChar prefix ] } numbers
+                reduce { alphabet = reversedAlphabet, id = [ String.fromChar prefix ] } numbers
                     |> padId (Sqids.Context.getMinLength context)
         in
         if Sqids.Context.containsBlockedWord context id then
@@ -364,19 +364,28 @@ generateOffsetFromInputs alphabet numbers =
         alphabetLength : Int
         alphabetLength =
             Array.length alphabet
-    in
-    List.Extra.indexedFoldl
-        (\index value acc ->
-            case Array.get (value |> modBy alphabetLength) alphabet |> Maybe.map Char.toCode of
-                Nothing ->
-                    -1
 
-                Just codePoint ->
-                    codePoint + index + acc
-        )
-        (List.length numbers)
-        numbers
+        foldl : Int -> Int -> List Int -> Int
+        foldl index acc list =
+            case list of
+                [] ->
+                    acc
+
+                first :: rest ->
+                    case Array.get (first |> modBy alphabetLength) alphabet |> Maybe.map Char.toCode of
+                        Nothing ->
+                            -1
+
+                        Just codePoint ->
+                            foldl (index + 1) (codePoint + index + acc) rest
+    in
+    foldl 0 (List.length numbers) numbers
         |> modBy alphabetLength
+
+
+reverseArray : Array a -> Array a
+reverseArray input =
+    Array.foldl (::) [] input |> Array.fromList
 
 
 {-| TESTED
