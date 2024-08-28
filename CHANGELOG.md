@@ -2,7 +2,7 @@
 
 ## TODO
 
-- Fix all elm-review issues
+Remove elmcraft/core-extra because user might already use another package to expose `List.Extra` or `Array.Extra`
 
 ## Unreleased
 
