@@ -82,7 +82,7 @@ or built with
     Sqids.Context.new
         |> Sqids.Context.build
 
-but without the need to handle a [Error](#Error) case.
+but without the need to handle an [Error](#Error) case.
 
 -}
 default : Context
