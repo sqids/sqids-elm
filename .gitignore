@@ -1,0 +1,5 @@
+elm-stuff
+node_modules
+
+# auto-generated from https://dark.elm.dmy.fr/packages/lue-bird/elm-review-documentation-code-snippet/latest/
+tests/DocumentationCodeSnippetTest.elm

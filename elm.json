@@ -1,0 +1,20 @@
+{
+    "type": "package",
+    "name": "sqids/sqids-elm",
+    "summary": "Generate short unique string identifiers from numbers",
+    "license": "MIT",
+    "version": "1.0.0",
+    "exposed-modules": [
+        "Sqids",
+        "Sqids.BlockList",
+        "Sqids.Context"
+    ],
+    "elm-version": "0.19.0 <= v < 0.20.0",
+    "dependencies": {
+        "elm/core": "1.0.2 <= v < 2.0.0"
+    },
+    "test-dependencies": {
+        "elm-explorations/test": "2.1.0 <= v < 3.0.0",
+        "elmcraft/core-extra": "2.0.0 <= v < 3.0.0"
+    }
+}

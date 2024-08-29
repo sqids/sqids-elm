@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "elm-tooling": "^1.15.1"
+  }
+}
