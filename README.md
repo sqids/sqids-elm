@@ -106,7 +106,7 @@ Sqids.decodeWith context "XRKUdQ"
 
 You need the Elm compiler and an elm test runner (e.g. [elm-test](https://www.npmjs.com/package/elm-test) or [elm-test-rs](https://github.com/mpizenberg/elm-test-rs)).
 
-An easy way to get started is with node.js and [elm-tooling](https://elm-tooling.github.io/elm-tooling-cli/).
+An easy way to get started is with [node.js](https://nodejs.org) and [elm-tooling](https://elm-tooling.github.io/elm-tooling-cli/).
 
 ```sh
 # Install dependencies
