@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "test": "elm-test-rs"
+  },
   "devDependencies": {
     "elm-tooling": "^1.15.1"
   }
