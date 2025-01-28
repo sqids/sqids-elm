@@ -1,6 +1,7 @@
 module Sqids exposing
     ( encode, encodeWith, EncodeError(..), encodeErrorToString, maxSafeInt
     , decode, decodeWith, DecodeError(..), decodeErrorToString
+    , Context
     )
 
 {-|
@@ -15,12 +16,24 @@ module Sqids exposing
 
 @docs decode, decodeWith, DecodeError, decodeErrorToString
 
+
+# Context
+
+@docs Context
+
 -}
 
 import Array exposing (Array)
 import Set exposing (Set)
 import Shuffle
-import Sqids.Context exposing (Context)
+import Sqids.Context
+
+
+{-| The Context needed for the [encodeWith](#encodeWith) and [decodeWith](#decodeWith) functions.
+Same as [Sqids.Context.Context](./Sqids-Context#Context). Exposed here for convenience.
+-}
+type alias Context =
+    Sqids.Context.Context
 
 
 {-| Possible Error cases when trying to decode a string to integer numbers.
